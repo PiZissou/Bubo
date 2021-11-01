@@ -1,0 +1,33 @@
+﻿<UserControl x:Class="Bubo.PickNodeBtn"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="20" d:DesignWidth="100">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="UICustomization.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid >
+        <Button Click="OnClickBtn"
+                Content= "{Binding NodeName}"
+                Margin="0"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
+            <Button.Style>
+                <Style TargetType="Button" BasedOn="{StaticResource ButtonStyle}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsPickingNode}" Value="True">
+                            <Setter Property="Background" Value="#5F8AC1"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+        </Button>
+    </Grid>
+</UserControl>

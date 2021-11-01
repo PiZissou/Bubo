@@ -1,0 +1,1371 @@
+﻿<UserControl x:Class="Bubo.BuboUI"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Bubo"
+        mc:Ignorable="d"
+        Height="709"
+        Width="449.333"
+        Background="{DynamicResource MaxMainBackground}"
+        IsVisibleChanged="UserControl_IsVisibleChanged">
+
+    <UserControl.Resources>
+
+        <ResourceDictionary >
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="UICustomization.xaml" />
+                <ResourceDictionary Source="UIResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Name="MainGrid"
+        VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="158*"/>
+        </Grid.RowDefinitions>
+
+        <Menu Background="{StaticResource MaxMainBackground}"
+            Grid.Row="0">
+            <MenuItem Header="Interface"
+                          Margin="3,0,0,0">
+                <MenuItem Header="Open Config Xml"
+                            Click="OnSettingsOpenConfigClick"/>
+                <MenuItem Header="Refresh"
+                          Click="OnInterfaceRefreshClick"/>
+
+            </MenuItem>
+            <MenuItem Header="Settings" DataContext="{x:Static local:UISettings.Instance}"
+                       Margin="3,0,0,0">
+
+                <MenuItem Header="Smart Mode"
+                          IsCheckable="True"
+                          IsChecked="{Binding SmartMode}"/>
+                <MenuItem Header="RedrawOnTime"
+                          IsCheckable="True"
+                          IsChecked="{Binding RefreshOnTime }"/>
+            </MenuItem>
+        </Menu>
+
+        <TabControl Grid.Row="1"
+            DataContext="{x:Static local:Main.Instance}"
+            SelectedIndex="{Binding SelectedTab}"
+            PreviewMouseDown="TabControl_PreviewMouseDown" Grid.RowSpan="2">
+            <TabItem Header="Skin" DataContext="{x:Static local:Main.Skin}">
+                
+                <Grid Background="{StaticResource  MaxMainBackground}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="165" MinWidth="165"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0"
+                          Margin="0,0,4,0"
+                      Background="{StaticResource  MainBackground}" Grid.ColumnSpan="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height=".7*"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height=".3*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0"
+                        Orientation="Vertical"
+                        Background="{StaticResource  VeryDarkBackground}">
+                            <TextBlock Height="16"
+                                   Margin="5,0,0,0" 
+                                   HorizontalAlignment="Stretch">
+                                    <Run  Text="{Binding NodeName ,StringFormat=0, FallbackValue=No Skin Detected }"/>
+                                    <Run  Text="{Binding CurrentMod.Modifier.Name,StringFormat=[{0}],FallbackValue=... }"/>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <TreeView  Grid.Row="1"
+                               BorderBrush="{StaticResource MaxBtnOverBackground}"
+                                BorderThickness="1"
+                               Name = "TreeSkinUI"
+                                ItemsSource="{Binding TreeRoot.Children}"
+                                Background="{StaticResource MaxPairBackground}"
+                                MouseDown="OnMouseDownTreeView">
+                            <TreeView.Resources>
+                                <ContextMenu x:Key="TreeViewSkinCM" >
+                                    <MenuItem Header="Select"
+                                          Click="OnSkinSelectShowClick"/>
+                                </ContextMenu>
+                                <Style TargetType="TreeViewItem" BasedOn="{StaticResource TreeViewItemStyle}">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Setter Property="Visibility" Value="Visible" />
+                                    <Style.Triggers>
+                                        <DataTrigger  Binding="{Binding IsItemSelected}" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource MaxHighlightBackground}"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}"/>
+                                        </DataTrigger>
+
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsItemSelected}" Value="False"/>
+                                                <Condition Binding="{Binding Path='.', Converter={StaticResource ClassToBoolConverter}, ConverterParameter={x:Type local:LayerItem}}" Value="True"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Background"  Value="{StaticResource MaxBtnOverBackground}"/>
+                                        </MultiDataTrigger>
+
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsItemSelected}" Value="False"/>
+                                                <Condition Binding="{Binding IsPair}" Value="True"/>
+                                                <Condition Binding="{Binding Path='.' , Converter={StaticResource ClassToBoolConverter}, ConverterParameter={x:Type local:LayerItem}}" Value="False"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Background"  Value="{StaticResource MaxPairBackground}"/>
+                                        </MultiDataTrigger>
+
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsItemSelected}" Value="False"/>
+                                                <Condition Binding="{Binding IsPair}" Value="False"/>
+                                                <Condition Binding="{Binding Path='.' , Converter={StaticResource ClassToBoolConverter}, ConverterParameter={x:Type local:LayerItem}}" Value="False"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Background"  Value="{StaticResource MaxImpairBackground}"/>
+                                        </MultiDataTrigger>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Value="False">
+                                                    <Condition.Binding>
+                                                        <MultiBinding Converter="{StaticResource VisibleItemConverter}">
+                                                            <Binding Path="."/>
+                                                            <Binding Path="UnHoldOnly" Source="{x:Static local:Main.Skin}"/>
+                                                            <Binding Path="ShowItemR" Source="{x:Static local:Main.Skin}"/>
+                                                            <Binding Path="ShowItemL" Source="{x:Static local:Main.Skin}"/>
+                                                            <Binding Path="ShowItemM" Source="{x:Static local:Main.Skin}"/>
+                                                            <Binding Path="HasChildrenVisible"/>
+                                                            <Binding Path="IsHold"/>
+                                                        </MultiBinding>
+                                                    </Condition.Binding>
+                                                </Condition>
+                                            </MultiDataTrigger.Conditions>
+                                            <MultiDataTrigger.Setters>
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </MultiDataTrigger.Setters>
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+
+                                <DataTemplate x:Key="NameTemplate">
+                                    <TextBlock HorizontalAlignment="Stretch"
+                                        Margin="2,0,0,0">
+                                        <TextBlock.Text>
+                                            <MultiBinding Converter ="{StaticResource ExcludeNameConverter}">
+                                                <Binding Path="." />
+                                                <Binding Path="ExcluBaseName" Source="{x:Static local:Main.Skin}"/>
+                                                <Binding Path="ExcluPattern" Source="{x:Static local:Main.Skin}"/>
+                                                <Binding Path="ExcluPatterns" Source="{x:Static local:Main.Skin}"/>
+                                                <Binding Path="ExcluEndName" Source="{x:Static local:Main.Skin}"/>
+                                                <Binding Path="ExcluEnds" Source="{x:Static local:Main.Skin}"/>
+                                                <Binding Path="Name"/>
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </DataTemplate>
+
+                                <HierarchicalDataTemplate DataType ="{x:Type local:TreeItem}"
+                                                    ItemsSource="{Binding Children}">
+                                    <Grid  HorizontalAlignment="Stretch" 
+                                    Background="Transparent">
+                                        <Border BorderBrush="{StaticResource MaxPairBackground}" 
+                                            BorderThickness="0.2"
+                                            Margin="-1,0,0,0"/>
+                                        <StackPanel Orientation="Horizontal"    
+                                        Background="Transparent"
+                                        MouseDown ="OnSelectItemMouseDown"
+                                        PreviewMouseUp="OnSelectItemMouseUp"
+                                        PreviewMouseMove="OnSelectItemMouseMove">
+                                            <ContentPresenter 
+                                        Margin="2,0,0,0"
+                                        Content="{Binding}" ContentTemplate="{StaticResource NameTemplate}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </HierarchicalDataTemplate>
+
+                                <HierarchicalDataTemplate DataType ="{x:Type local:SkinItem}"
+                                                      ItemsSource="{Binding Children}">
+                                    <Grid  HorizontalAlignment="Stretch" 
+                                       Background="Transparent">
+                                        <Border BorderBrush="{StaticResource MaxPairBackground}" 
+                                                BorderThickness=".2"
+                                                Margin="-1,0,0,0"/>
+                                        <Grid  HorizontalAlignment="Stretch" 
+                                       Background="Transparent"
+                                       MouseDown ="OnSelectItemMouseDown"
+                                       PreviewMouseUp="OnSelectItemMouseUp"
+                                       PreviewMouseMove="OnSelectItemMouseMove">
+                                            <Grid.ColumnDefinitions >
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Image  Source="{StaticResource bone}"
+                                            Grid.Column="0"
+                                            Margin="2,0,0,0"
+                                            Width="15"/>
+                                            <ContentPresenter  Grid.Column ="1" HorizontalAlignment="Left" Content="{Binding}" ContentTemplate="{StaticResource NameTemplate}"/>
+                                            <Image Width="12" Margin="0,0,5,0" Grid.Column ="2">
+                                                <Image.Style>
+                                                    <Style TargetType="Image">
+                                                        <EventSetter Event="PreviewMouseDown" Handler="OnHoldImageMouseDown"/>
+                                                        <Setter Property="Source" Value="{StaticResource unHold}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsHold}" Value="True">
+                                                                <Setter Property="Source" Value="{StaticResource hold}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Image.Style>
+                                            </Image>
+                                        </Grid>
+                                    </Grid>
+                                </HierarchicalDataTemplate>
+                            </TreeView.Resources>
+                        </TreeView>
+                        <GridSplitter Grid.Row ="2"
+                              HorizontalAlignment ="Stretch"
+                              Background="{StaticResource MaxMainBackground}"
+                              ShowsPreview="false"
+                              Height="4"
+                              Width="Auto"/>
+                        <Grid  Grid.Row="3" HorizontalAlignment="Stretch">
+
+                            <ListBox                                
+                                BorderBrush="{StaticResource MaxBtnOverBackground}"
+                                BorderThickness="1"
+                                ItemsSource="{Binding CurrentSkin.WeightItems }" 
+                                SelectionMode="Single"
+                                HorizontalAlignment="Stretch"
+                                Margin="0,0,0,0"
+                                Background="{StaticResource MaxPairBackground}">
+                                <ListBox.Resources>
+                                    <Style TargetType="ListBoxItem" BasedOn="{StaticResource ListBoxItemStyle}">
+                                        <Setter Property="IsSelected" Value="{Binding IsItemSelected}"/>
+                                    </Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockStyle}"/>
+                                    <DataTemplate x:Key="NameTemplate">
+                                        <TextBlock HorizontalAlignment="Stretch"
+                                        Margin="2,0,0,0">
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter ="{StaticResource ExcludeNameConverter}">
+                                                    <Binding Path="." />
+                                                    <Binding Path="ExcluBaseName" Source="{x:Static local:Main.Skin}"/>
+                                                    <Binding Path="ExcluPattern" Source="{x:Static local:Main.Skin}"/>
+                                                    <Binding Path="ExcluEndName" Source="{x:Static local:Main.Skin}"/>
+                                                    <Binding Path="ExcluEnds" Source="{x:Static local:Main.Skin}"/>
+                                                    <Binding Path="Name"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                    <DataTemplate DataType="{x:Type local:WeightItem}">
+                                        <Grid 
+                                        Background="Transparent"
+                                        HorizontalAlignment="Stretch"
+                                        MouseDown ="OnSelectItemMouseDown"
+                                        PreviewMouseUp="OnSelectItemMouseUp"
+                                        PreviewMouseMove="OnSelectItemMouseMove">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="40"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Height="16" Grid.Column="0"
+                                            Margin="5,0,0,0" 
+                                            HorizontalAlignment="Stretch"
+                                            Text="{Binding Weight ,StringFormat=N3 , FallbackValue=...}"/>
+
+                                            <Grid 
+                                            Background="Transparent"
+                                            Grid.Column="1" HorizontalAlignment="Stretch" >
+                                                <Grid.ColumnDefinitions >
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <Image  Source="{StaticResource bone}"
+                                                Grid.Column="0"
+                                                Margin="2,0,0,0"
+                                                Width="15">
+                                                    <Image.Style>
+                                                        <Style TargetType="Image">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding ="{Binding  CurrenSkin.IsEditDQ , Source={x:Static local:Main.Skin}, Mode=TwoWay}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Image.Style>
+                                                </Image>
+                                                <ContentPresenter  Grid.Column ="1" HorizontalAlignment="Left" Content="{Binding LinkedItem}" ContentTemplate="{StaticResource NameTemplate}"/>
+                                                <Image Width="12" Margin="0,0,5,0" Grid.Column ="2">
+                                                    <Image.Style>
+                                                        <Style TargetType="Image">
+                                                            <EventSetter Event="PreviewMouseDown" Handler="OnHoldImageMouseDown"/>
+                                                            <Setter Property="Source" Value="{StaticResource unHold}"/>
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding LinkedItem.IsHold}" Value="True">
+                                                                    <Setter Property="Source" Value="{StaticResource hold}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding ="{Binding  CurrenSkin.IsEditDQ , Source={x:Static local:Main.Skin}, Mode=TwoWay}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Image.Style>
+                                                </Image>
+                                            </Grid>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.Resources>
+                            </ListBox>
+                        </Grid>
+                    </Grid>
+                    <GridSplitter Grid.Column="1"
+                              VerticalAlignment="Stretch"
+                              Background="{StaticResource MaxMainBackground}"
+                              ShowsPreview="false"
+                              Height="Auto"
+                              Width="4"
+                                />
+                    <StackPanel Grid.Column="2"
+                            HorizontalAlignment="Stretch"
+                            Orientation="Vertical"
+                            Margin="0,0,0,0">
+                        <Expander Header="Display" 
+                              IsExpanded="True">
+                            <Expander.Resources>
+                                <Style TargetType="CheckBox" BasedOn="{StaticResource CheckBoxStyle}">
+                                    <Setter Property="Margin" Value="5,2,5,2"/>
+                                </Style>
+                            </Expander.Resources>
+                            <Grid Margin="10,0,10,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Orientation="Vertical"
+                                    HorizontalAlignment="Left"
+                                    >
+                                    <StackPanel>
+                                        <CheckBox Content="D"
+                                          IsChecked="{Binding ShowItemR}"/>
+                                        <CheckBox Content="Mid" 
+                                          IsChecked="{Binding ShowItemM}"/>
+                                        <CheckBox Content="G"
+                                          IsChecked="{Binding ShowItemL}"/>
+                                    </StackPanel>
+                                    <CheckBox Content="UnHold Only"
+                                      IsChecked="{Binding UnHoldOnly}"/>
+                                    <CheckBox Content="Exclude Pattern"
+                                      IsChecked="{ Binding ExcluPattern }"/>
+                                    <CheckBox Content="Exclude EndName"  
+                                      IsChecked="{ Binding ExcluEndName }"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Vertical"
+                                    HorizontalAlignment="Right"
+                                    >
+                                    <local:CustToggleButton   Grid.Column="0"
+                                                              Width ="25"
+                                                            BorderThickness="0"
+                                                              Background="Transparent"
+                                                            IsChecked="{Binding CurrentSkin.IsDisplayFaces, Mode=TwoWay, FallbackValue = False}">
+                                        <Image Source="{StaticResource displayFaces}"
+                                               Width="15"/>
+                                    </local:CustToggleButton>
+                                    <local:CustToggleButton  Grid.Column="1"
+                                                              Width ="25"
+                                                            BorderThickness="0"
+                                                             Background="Transparent"
+                                                            IsChecked="{Binding CurrentSkin.IsDisplayVertices, Mode=TwoWay, FallbackValue = False}">
+                                        <Image Source="{StaticResource displayVertices}"
+                                               Width="15"/>
+                                    </local:CustToggleButton>
+                                </StackPanel>
+                            </Grid>
+                        </Expander>
+                        <Expander Header ="Skin Fonction" IsExpanded="True" >
+                            <Grid Margin="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Button Click ="OnInitSkinClick"  Grid.Row="0" Grid.ColumnSpan="2">
+                                    <StackPanel >
+                                        <TextBlock Text="Init Skin"
+                                               Margin="0,0,5,0"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Click ="OnHoldClick"  Grid.Column="0"  Grid.Row="1">
+                                    <StackPanel >
+                                        <Image Source="{StaticResource hold}"
+                                           Width="11"
+                                           Margin="0,0,0,2"/>
+                                        <TextBlock Text="Hold All"
+                                               Margin="0,0,5,0"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Click="OnUnHoldClick"  Grid.Column="1"  Grid.Row="1">
+                                    <StackPanel>
+                                        <Image Source="{StaticResource unHold}"
+                                               Width="11"
+                                               Margin="0,0,0,2"/>
+                                        <TextBlock Text="UnHold All"
+                                                   Margin="0,0,5,0"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Click="OnAddBoneClick"
+                                    Grid.Column="0"
+                                    Grid.ColumnSpan="1"
+                                    Grid.Row="2">
+                                    <StackPanel>
+                                        <Image Source="{StaticResource add}"
+                                                   Width="11" 
+                                                   Margin="0,0,0,0"/>
+                                        <TextBlock Text="Add"
+                                                       Margin="5,0,5,0"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Click="OnReplaceBoneClick"
+                                    Grid.Column="2"
+                                    Grid.Row="2">
+                                    <StackPanel>
+                                        <Image Source="{StaticResource replaceBone}"
+                                                   Width="14" 
+                                                   Margin="0,0,0,0"/>
+                                        <TextBlock Text="Replace"
+                                                       Margin="5,0,5,0"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Click="OnResetPoseClick" 
+                                    Grid.Column="0"
+                                    Grid.Row="3"
+                                     Grid.ColumnSpan="2">
+                                    <StackPanel>
+                                        <Image Source="{StaticResource resetPose}"
+                                               Width="14" 
+                                               Margin="0,0,0,0"/>
+                                        <TextBlock Text="Reset Pose"
+                                                   Margin="5,0,5,0"/>
+                                    </StackPanel>
+                                </Button >
+                                <Button Click="OnRemoveUnusedBonesClick"
+                                    Grid.Column="0"
+                                    Grid.ColumnSpan="2"
+                                    Grid.Row="4">
+                                    <StackPanel>
+                                        <Image Source="{StaticResource remove}"
+                                                   Width="11" 
+                                                   Margin="0,0,0,0"/>
+                                        <TextBlock Text="Remove Unused"
+                                                       Margin="5,0,5,0"/>
+                                    </StackPanel>
+                                </Button>
+                                <Grid Grid.Row="5" Grid.ColumnSpan="2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width=".7*"/>
+                                        <ColumnDefinition Width=".3*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Click="OnRemoveZeroWeightsClick"
+                                    Grid.Column="0">
+                                        <StackPanel>
+                                            <TextBlock Text="Zero Weights"
+                                                       Margin="5,0,5,0"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <local:SpinnerControl 
+                                    Maximum="1.0"
+                                    Minimum="0.001"
+                                    DefaultValue="0.001"
+                                    Scale="0.001"
+                                    Grid.Column="1"
+                                    Margin="0,0,0,0"
+                                    Height="20"
+                                    SpinnerValue="{Binding ZeroWeight, Mode=TwoWay , StringFormat=N2}">
+                                    </local:SpinnerControl>
+                                </Grid>
+                            </Grid>
+                        </Expander>
+                        <Expander Header="Weights" IsExpanded="True">
+                            <StackPanel Orientation="Vertical"
+                                    Margin="2">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <local:CustToggleButton  Content="Edit Envelopes" 
+                                        IsChecked="{Binding CurrentSkin.IsEditEnvelopes, Mode=TwoWay,FallbackValue = False}"
+                                        >
+
+                                    </local:CustToggleButton>
+                                    <Grid Grid.Row="1" >
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="0.1*"/>
+                                            <ColumnDefinition Width="0.4*"/>
+                                            <ColumnDefinition Width="0.2*"/>
+                                            <ColumnDefinition Width="0.2*"/>
+                                            <ColumnDefinition Width="0.2*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <local:SpinnerControl 
+                                        Grid.Column="0"
+                                        Grid.ColumnSpan="2"
+                                        Margin="0,0,0,0"
+                                        Height="20"
+                                        Maximum="1.0"
+                                        Minimum="0.001"
+                                        DefaultValue="0.001"
+                                        Scale="0.001"
+                                        SpinnerValue="{Binding CurrentWeight, Mode=TwoWay}" Grid.Row="0">
+                                        </local:SpinnerControl>
+                                        <Button 
+                                        Grid.Column="2"
+                                        Content="-"
+                                        Click="OnWeightMinusClick" Grid.Row="0"/>
+                                        <Button 
+                                        Grid.Column="3"
+                                        Content="+"
+                                        Click="OnWeightPlusClick" Grid.Row="0"/>
+                                        <Button 
+                                        Grid.Column="4"
+                                        Content="{Binding AbsoluteWeight }"
+                                        Click="OnSetAbsoluteWeightClick" Grid.Row="0"
+                                        MouseRightButtonDown="OnSetWeightClick"/>
+                                        <TextBlock Grid.Column="0"
+                                               Grid.Row="2"
+                                        Text="%"/>
+                                        <local:SpinnerControl 
+                                        Grid.Column="1"
+                                        Grid.Row="2"
+                                        Margin="0,0,0,0"
+                                        Height="20"
+                                        FormatValue="0"
+                                        SpinnerValue="{Binding TransWeightBones, Mode=TwoWay}">
+                                        </local:SpinnerControl>
+                                        <Button 
+                                        Grid.Column="2"
+                                        Grid.Row="2"
+                                        Grid.ColumnSpan="3"
+                                        Content="Apply"
+                                        Click="OnTransfertWeightBonesClick"/>
+                                    </Grid>
+                                    <Grid Grid.Row="2" >
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="0.7*"/>
+                                            <ColumnDefinition Width="0.3*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Button Click="OnScaleWeightsClick" Grid.Column="0">
+                                            <StackPanel>
+                                                <TextBlock Text="Scale Weights"
+                                                           Margin="5,0,5,0"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <local:SpinnerControl 
+                                            Maximum="2.0"
+                                            Minimum="0.01"
+                                            DefaultValue="0.01"
+                                            Scale="0.01"
+                                            Grid.Column="1"
+                                            Margin="0,0,0,0"
+                                            Height="20"
+                                            SpinnerValue="{Binding ScaleWeight, Mode=TwoWay}">
+                                        </local:SpinnerControl>
+                                    </Grid>
+                                    <Grid Grid.Row="3" >
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Button Click="OnSkrinkSkinClick" Grid.Column="0">
+                                            <TextBlock Text="Shrink" Margin="-4,0,0,0"/>
+                                        </Button>
+                                        <Button Click="OnGrowSkinClick" Grid.Column="1">
+                                            <TextBlock Text="Grow"/>
+                                        </Button>
+                                        <Button Click="OnRingSkinClick" Grid.Column="2">
+                                            <TextBlock Text="Ring"/>
+                                        </Button>
+                                        <Button Click="OnLoopSkinClick" Grid.Column="3">
+                                            <TextBlock Text="Loop"/>
+                                        </Button>
+                                    </Grid>
+                                    <GroupBox Header="Paint"   Grid.Row="5"
+                                      Margin="0,5,0,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <local:CustToggleButton Content="Blend"  Grid.Column="0"
+                                                                 IsChecked="{Binding CurrentSkin.IsPaintBlend, Mode=TwoWay, FallbackValue = False}">
+                                            </local:CustToggleButton>
+                                            <local:SpinnerControl 
+                                            Maximum="2.0"
+                                            Minimum="0.01"
+                                            DefaultValue="1.0"
+                                            Scale="0.01"
+                                            Grid.Column="0"
+                                            Margin="0,0,0,0"
+                                            Height="20"
+                                            SpinnerValue="{Binding CurrentSkin.PaintBlendWeight, Mode=TwoWay, FallbackValue=1.0}" Grid.Row="1">
+                                            </local:SpinnerControl>
+                                            <local:CustToggleButton Content="Set"  Grid.Column="1"
+                                                                 IsChecked="{Binding CurrentSkin.IsPaintSet, Mode=TwoWay, FallbackValue = False}">
+                                            </local:CustToggleButton>
+                                            <local:SpinnerControl 
+                                            Maximum="1.0"
+                                            Minimum="0.01"
+                                            DefaultValue="0.01"
+                                            Scale="0.01"
+                                            Grid.Column="1"
+                                            Margin="0,0,0,0"
+                                            Height="20"
+                                            SpinnerValue="{Binding CurrentSkin.PaintSetWeight, Mode=TwoWay, FallbackValue=0.01}" Grid.Row="1">
+                                            </local:SpinnerControl>
+                                        </Grid>
+                                    </GroupBox>
+                                    <GroupBox Header="Dual Quat"   Grid.Row="6"
+                                      Margin="0,5,0,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="0.7*"/>
+                                                <ColumnDefinition Width="0.3*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <CheckBox Content="DQ Skinning"
+                                          IsChecked="{Binding CurrentSkin.IsEnabledDQ, FallbackValue = False}"/>
+                                            <Button 
+                                            Grid.Column="2"
+                                            Content="{Binding AbsoluteDQWeight }"
+                                            Click="OnSetAbsoluteWeightDQClick" Grid.Row="0"
+                                            MouseRightButtonDown="OnSetWeightDQClick"/>
+
+                                            <local:CustToggleButton Content="Blend Weights"  Grid.Row="1" Grid.ColumnSpan="2"
+                                            IsChecked="{Binding CurrentSkin.IsEditDQ, Mode=TwoWay, FallbackValue = False}">
+                                            </local:CustToggleButton>
+                                        </Grid>
+                                    </GroupBox>
+                                </Grid>
+                            </StackPanel>
+                        </Expander>
+                        <Expander Header ="Mirror" IsExpanded="True">
+                            <Expander.Resources>
+                            </Expander.Resources>
+                            <Grid Margin="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <local:PickNodeBtn OnNodePicked="OnDetectSymmetryNodePicked"
+                                               NodeName="{Binding Path = PolySym.RefNode.Name , Source={x:Static local:Main.Instance}}"
+                                               BorderBrush="Green" 
+                                               Grid.ColumnSpan="2">
+                                    <local:PickNodeBtn.Style>
+                                        <Style TargetType="local:PickNodeBtn">
+                                            <Setter Property="BorderThickness" Value="0"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Path = PolySym.IsDetected,Source={x:Static local:Main.Instance}}" Value="True" >
+                                                    <Setter Property="BorderThickness" Value="2"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </local:PickNodeBtn.Style>
+                                </local:PickNodeBtn>
+
+                                <Button Content="&lt;"
+                                    Click="OnMirrorGSkinClick"
+                                    Grid.Row="1"
+                                    Grid.Column="0"/>
+                                <Button Content=">"
+                                    Click="OnMirrorDSkinClick"
+                                    Grid.Row="1"
+                                    Grid.Column="2"/>
+                            </Grid>
+                        </Expander>
+                        <Expander Header ="Save / Load" IsExpanded="True">
+                            <StackPanel Orientation="Vertical"
+                                    Margin="2">
+                                <Button Content="Save Skin"
+                                    Click="OnSaveSkinClick"/>
+                                <Button Content="Load Skin"
+                                    Click="OnLoadSkinClick"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="0.6*"/>
+                                        <ColumnDefinition Width="0.4*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button 
+                                    Grid.Column="0"
+                                    Content="Replace Skin"
+                                    Click="OnReplaceSkinClick"/>
+                                    <local:SpinnerControl 
+                                    Grid.Column="1"
+                                    Margin="0,0,0,0"
+                                    Height="20"
+                                    FormatValue="0"
+                                    SpinnerValue="{Binding MixSkinValue, Mode=TwoWay}">
+                                    </local:SpinnerControl>
+                                </Grid>
+                            </StackPanel>
+                        </Expander>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Morph" DataContext="{x:Static local:Main.Morph}">
+                <Grid Background="{StaticResource  MaxMainBackground}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="165" MinWidth="165"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid Grid.Column="0"
+                          Margin="0,0,4,0"
+                      Background="{StaticResource  MainBackground}" Grid.ColumnSpan="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="0*"/>
+                            <ColumnDefinition Width="0*"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel Grid.Row="0"
+                        Orientation="Vertical"
+                        Background="{StaticResource  VeryDarkBackground}" Grid.ColumnSpan="3">
+                            <TextBlock Height="16"
+                                   Margin="5,0,0,0" 
+                                   HorizontalAlignment="Stretch">
+                                    <Run  Text="{Binding NodeName ,StringFormat=0, FallbackValue=No Morph Detected }"/>
+                                    <Run  Text="{Binding CurrentMod.Modifier.Name,StringFormat=[{0}],FallbackValue=... }"/>
+                            </TextBlock>
+                        </StackPanel>
+                        <TreeView  Grid.Row="1"
+                                BorderBrush="{StaticResource MaxBtnOverBackground}"
+                                BorderThickness="1"
+                                ItemsSource="{Binding TreeRoot.Children}"
+                                Background="{StaticResource MaxPairBackground}" Grid.ColumnSpan="3"
+                                MouseDown="OnMouseDownTreeView"
+                                >
+                            <TreeView.Resources>
+                                <ContextMenu x:Key="TreeViewMorphCM" >
+                                    <MenuItem Header="Rename"
+                                          Click="OnRenameItemClick"/>
+                                    <MenuItem Header="Select Show"
+                                          Click="OnMorphSelectShowClick"/>
+                                    <MenuItem Header="Hide Targets"
+                                          Click="OnMorphHideTargetsClick"/>
+                                    <MenuItem Header="Hide All"
+                                          Click="OnMorphHideAllClick"/>
+                                    <MenuItem Header="Show Controller"
+                                          Click="OnMorphShowConrollerClick"/>
+                                    <MenuItem Header="Remove"
+                                          Click="RemoveMorphClick"/>
+                                </ContextMenu>
+                                <Style TargetType="TreeViewItem" BasedOn="{StaticResource TreeViewItemStyle}">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Setter Property="Visibility" Value="Visible" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsItemSelected}" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource MaxHighlightBackground }"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}"/>
+                                        </DataTrigger>
+
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsItemSelected}" Value="False"/>
+                                                <Condition Binding="{Binding Path='.', Converter={StaticResource ClassToBoolConverter}, ConverterParameter={x:Type local:LayerItem}}" Value="True"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Background"  Value="{StaticResource MaxBtnOverBackground}"/>
+                                        </MultiDataTrigger>
+
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsItemSelected}" Value="False"/>
+                                                <Condition Binding="{Binding IsPair}" Value="True"/>
+                                                <Condition Binding="{Binding Path='.' , Converter={StaticResource ClassToBoolConverter}, ConverterParameter={x:Type local:LayerItem}}" Value="False"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Background"  Value="{StaticResource MaxPairBackground}"/>
+                                        </MultiDataTrigger>
+
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsItemSelected}" Value="False"/>
+                                                <Condition Binding="{Binding IsPair}" Value="False"/>
+                                                <Condition Binding="{Binding Path='.' , Converter={StaticResource ClassToBoolConverter}, ConverterParameter={x:Type local:LayerItem}}" Value="False"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Background"  Value="{StaticResource MaxImpairBackground}"/>
+                                        </MultiDataTrigger>
+
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Value="false">
+                                                    <Condition.Binding>
+                                                        <MultiBinding Converter="{StaticResource VisibleItemConverter}">
+                                                            <Binding Path="."/>
+                                                            <Binding Path="ActiveOnly" Source="{x:Static local:Main.Morph}"/>
+                                                            <Binding Path="ShowItemR" Source="{x:Static local:Main.Morph}"/>
+                                                            <Binding Path="ShowItemL" Source="{x:Static local:Main.Morph}"/>
+                                                            <Binding Path="ShowItemM" Source="{x:Static local:Main.Morph}"/>
+                                                            <Binding Path="HasChildrenVisible"/>
+                                                            <Binding Path="IsActive"/>
+                                                        </MultiBinding>
+                                                    </Condition.Binding>
+                                                </Condition>
+                                            </MultiDataTrigger.Conditions>
+                                            <MultiDataTrigger.Setters>
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </MultiDataTrigger.Setters>
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+
+                                <DataTemplate x:Key="NameTemplate">
+                                    <TextBlock HorizontalAlignment="Stretch"
+                                           Margin="2,0,0,0">
+                                        <TextBlock.Text>
+                                            <MultiBinding Converter ="{StaticResource ExcludeNameConverter}">
+                                                <Binding Path="." />
+                                                <Binding Path="ExcluBaseName" Source="{x:Static local:Main.Morph}"/>
+                                                <Binding Path="ExcluPattern" Source="{x:Static local:Main.Morph}"/>
+                                                <Binding Path="ExcluPatterns" Source="{x:Static local:Main.Skin}"/>
+                                                <Binding Path="ExcluEndName" Source="{x:Static local:Main.Morph}"/>
+                                                <Binding Path="ExcluEnds" Source="{x:Static local:Main.Morph}"/>
+                                                <Binding Path="Name"/>
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </DataTemplate>
+
+                                <HierarchicalDataTemplate DataType ="{x:Type local:TreeItem}"
+                                                      ItemsSource="{Binding Children}">
+                                    <Grid  HorizontalAlignment="Stretch" 
+                                       Background="Transparent">
+                                        <Border BorderBrush="{StaticResource MaxPairBackground}" 
+                                                BorderThickness=".2"
+                                                Margin="-1,0,0,0"/>
+                                        <StackPanel Orientation="Horizontal" 
+                                            Background="Transparent"
+                                            MouseDown ="OnSelectItemMouseDown"
+                                            PreviewMouseUp="OnSelectItemMouseUp"
+                                            PreviewMouseMove="OnSelectItemMouseMove"
+                                            Margin="0,1,0,1">
+                                            <ContentPresenter 
+                                             Margin="2,0,0,0"
+                                            Content="{Binding}" ContentTemplate="{StaticResource NameTemplate}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </HierarchicalDataTemplate>
+
+                                <HierarchicalDataTemplate DataType ="{x:Type local:MorphItem}"
+                                                      ItemsSource="{Binding Children}">
+                                    <Grid  HorizontalAlignment="Stretch" 
+                                       Background="Transparent">
+                                        <Border BorderBrush="{StaticResource MaxPairBackground}" 
+                                                BorderThickness=".2"
+                                                Margin="-1,0,0,0"/>
+                                        <Grid  HorizontalAlignment="Stretch" 
+                                       Background="Transparent"
+                                       MouseDown ="OnSelectItemMouseDown"
+                                       PreviewMouseUp="OnSelectItemMouseUp"
+                                       PreviewMouseMove="OnSelectItemMouseMove"
+                                       Margin="0">
+                                            <Grid.ColumnDefinitions >
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border 
+                                                BorderThickness="1"
+                                                Margin="-1,1,0,1">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="BorderBrush" Value="Blue"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasTargets}" Value ="True">
+                                                                <Setter Property="BorderBrush" Value="Green"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                            </Border>
+                                            <Image  Source="{StaticResource morph}"
+                                            Grid.Column="1"
+                                            Width="10"
+                                            Margin="4,0,2,0"/>
+                                            <ContentPresenter  Grid.Column ="2" HorizontalAlignment="Left" Content="{Binding}" ContentTemplate="{StaticResource NameTemplate}"/>
+                                            <StackPanel Grid.Column="3" 
+                                                Orientation="Horizontal"
+                                                Height="18">
+                                                <local:SpinnerControl 
+                                                    IsBlendColor="True"
+                                                    Height="20"
+                                                    IsArrow="False"
+                                                    SpinnerValue="{Binding Value, Mode=TwoWay}"
+                                                    KeyUp="MorphItemValueChanged"
+                                                    PreviewMouseDown="MorphItemControlsPreviewMouseDown"
+                                                    FormatValue="1"
+                                                    IsEnabled="{Binding IsEditableValue, Mode=TwoWay}"
+                                                    Width = "40">
+                                                </local:SpinnerControl>
+                                                <Slider Value="{Binding Value, Mode=TwoWay}"
+                                                    Margin="2,5,2,0"
+                                                    Width = "70"
+                                                    Minimum="0"
+                                                    Maximum="100"
+                                                    IsEnabled="{Binding IsEditableValue, Mode=TwoWay}"
+                                                    PreviewMouseDown="MorphItemControlsPreviewMouseDown">
+                                                </Slider>
+
+                                                <Image Width="22" Margin="0,0,5,0" >
+                                                    <Image.Style>
+                                                        <Style TargetType="Image">
+                                                            <EventSetter Event="PreviewMouseDown" Handler="MorphItemControlsPreviewMouseDown"/>
+                                                            <EventSetter Event="MouseDown" Handler="OnActiveChannelCheckBoxChecked"/>
+                                                            <Setter Property="Source" Value="{StaticResource off}"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsActive}" Value ="True">
+                                                                    <Setter Property="Source" Value="{StaticResource on}"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Image.Style>
+                                                </Image>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Grid>
+                                </HierarchicalDataTemplate>
+                            </TreeView.Resources>
+                        </TreeView>
+                    </Grid>
+                    <GridSplitter Grid.Column="1"
+                              VerticalAlignment="Stretch"
+                              Background="{StaticResource MaxMainBackground}"
+                              ShowsPreview="false"
+                              Height="Auto"
+                              Width="4"/>
+                    <StackPanel Grid.Column="2"
+                            HorizontalAlignment="Stretch"
+                            Orientation="Vertical"
+                            Margin="0,0,0,0">
+                        <Expander Header="Display" 
+                              IsExpanded="True">
+                            <Expander.Resources>
+                                <Style TargetType="CheckBox" BasedOn="{StaticResource CheckBoxStyle}">
+                                    <Setter Property="Margin" Value="5,2,5,2"/>
+                                </Style>
+                            </Expander.Resources>
+                            <StackPanel Orientation="Vertical"
+                                    HorizontalAlignment="Left"
+                                    Margin="10,0,10,0">
+                                <StackPanel>
+                                    <CheckBox Content="D"
+                                          IsChecked="{Binding ShowItemR}"/>
+                                    <CheckBox Content="Mid" 
+                                          IsChecked="{Binding ShowItemM}"/>
+                                    <CheckBox Content="G"
+                                          IsChecked="{Binding ShowItemL}"/>
+                                </StackPanel>
+                                <CheckBox Content="Active Only"
+                                      IsChecked="{Binding ActiveOnly}"/>
+                                <CheckBox Content="Exclude Pattern"
+                                      IsChecked="{ Binding ExcluPattern }"/>
+                            </StackPanel>
+                        </Expander>
+                        <Expander Header ="Target" IsExpanded="True" >
+                            <StackPanel Orientation="Vertical"
+                                    Margin="2">
+                                <Grid >
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Button Click="AddMorphClick"
+                                        HorizontalAlignment="Stretch"
+                                        Grid.Column="0"
+                                        Grid.ColumnSpan="1"
+                                        Grid.Row="0">
+                                        <StackPanel>
+                                            <Image Source="{StaticResource add}"
+                                                       Width="11" 
+                                                       Margin="0,0,0,0"/>
+                                            <TextBlock Text="Add"
+                                                           Margin="5,0,23,0"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Click ="RemoveMorphClick" 
+                                        Grid.Row="1"
+                                        Grid.Column="0">
+                                        <StackPanel >
+                                            <Image Source="{StaticResource remove}"
+                                               Width="11"
+                                               Margin="0,0,0,0"/>
+                                            <TextBlock Text="Remove"
+                                                   Margin="5,0,3,0"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Click="OnExtractMorphClick"  Grid.Column="1">
+                                        <StackPanel>
+                                            <Image Source="{StaticResource extract}"
+                                                   Width="11"
+                                                   Margin="0,0,0,2"/>
+                                            <TextBlock Text="Extract"
+                                                    Margin="5,0,10,0"/>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button Click="OnReplaceMorphClick"
+                                        Grid.Column="2"
+                                        Grid.Row="1">
+                                        <StackPanel>
+                                            <Image Source="{StaticResource replaceBone}"
+                                                Width="14" 
+                                                Margin="0,0,0,0"/>
+                                            <TextBlock Text="Replace"
+                                                    Margin="5,0,20,0"/>
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="0.7*"/>
+                                        <ColumnDefinition Width="0.3*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button 
+                                    Grid.Column="0"
+                                    Content="Remove Unused"
+                                    Click="OnUnusedMorphClick"/>
+                                    <local:SpinnerControl 
+                                    Grid.Column="1"
+                                    Margin="0,0,0,0"
+                                    Height="20"
+                                    Minimum="0.01"
+                                    Maximum="1"
+                                    Scale="0.01"
+                                    SpinnerValue="{Binding UnusedTolerance, Mode=TwoWay}">
+                                    </local:SpinnerControl>
+                                </Grid>
+                                <Button Click="OnMorphTargetBuilderClick"
+                                        Grid.Column="2"
+                                        Grid.Row="1">
+                                    <StackPanel>
+                                        <TextBlock Text="MorphTargetBuilder"
+                                                    Margin="5,0,20,0"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Expander>
+                        <Expander Header ="Mirror" IsExpanded="True">
+                            <Expander.Resources>
+
+                            </Expander.Resources>
+                            <Grid Margin="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <local:PickNodeBtn OnNodePicked="OnDetectSymmetryNodePicked"
+                                               NodeName="{Binding Path = PolySym.RefNode.Name , Source={x:Static local:Main.Instance}}"
+                                               BorderBrush="Green" 
+                                               Grid.ColumnSpan="2">
+                                    <local:PickNodeBtn.Style>
+                                        <Style TargetType="local:PickNodeBtn">
+                                            <Setter Property="BorderThickness" Value="0"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Path = PolySym.IsDetected,Source={x:Static local:Main.Instance}}" Value="True" >
+                                                    <Setter Property="BorderThickness" Value="2"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </local:PickNodeBtn.Style>
+                                </local:PickNodeBtn>
+
+                                <Button Content="&lt;"
+                                    Click="OnMirrorGMorphClick"
+                                    Grid.Row="1"
+                                    Grid.Column="0"/>
+                                <Button Content=">"
+                                    Click="OnMirrorDMorphClick"
+                                    Grid.Row="1"
+                                    Grid.Column="2"/>
+                            </Grid>
+                        </Expander>
+                        <Expander Header ="Offset" IsExpanded="True">
+                            <StackPanel Orientation="Vertical"
+                                    Margin="2">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <RadioButton Content="All"  Grid.Column ="0"  Grid.Row="0"
+                                             IsChecked="{Binding Process, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static local:ProcessingOption.All}}"/>
+                                    <RadioButton Content="Selection"  Grid.Column ="1"  Grid.Row="0"
+                                             IsChecked="{Binding Process, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static local:ProcessingOption.Indices}}" HorizontalAlignment="Right" Margin="0,0,0.2,0.2" Width="79"/>
+                                    <local:PickNodeBtn OnNodePicked="OnOffsetMorphPicked"
+                                               NodeName="Offset"
+                                               BorderBrush="Green" 
+                                               Grid.Column ="0"  Grid.Row="1">
+                                    </local:PickNodeBtn>
+                                    <local:PickNodeBtn OnNodePicked="OnWrappedMorphPicked"
+                                               NodeName="Wrapped"
+                                               BorderBrush="Green" 
+                                               Grid.Column ="2"  Grid.Row="1">
+                                    </local:PickNodeBtn>
+                                    <Button Content="Collapse"
+                                    Click="OnCollapseMorphClick"  Grid.Column="0" Grid.Row="3"
+                                        Grid.ColumnSpan="2"/>
+                                </Grid>
+                            </StackPanel>
+                        </Expander>
+                        <Expander Header="Extends" IsExpanded="False">
+                            <StackPanel Orientation="Vertical"
+                                    Margin="2">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0"
+                                               Grid.Row="2"
+                                        Text="Current %"/>
+                                    <local:SpinnerControl 
+                                        Grid.Column="1"
+                                        Grid.Row="2"
+                                        Margin="0,0,0,0"
+                                        Height="20"
+                                        FormatValue="0"
+                                        Maximum="9999"
+                                        SpinnerValue="{Binding CurrentPercentToMax , Mode=TwoWay}">
+                                    </local:SpinnerControl>
+                                    <Button 
+                                        Grid.Column="2"
+                                        Grid.Row="2"
+                                        Grid.ColumnSpan="3"
+                                        Content="Set 100"
+                                        Click="OnMorphCurrentToMaxDelta"/>
+                                </Grid>
+                                <Button Content="Reset Vertex Selection"
+                                        Click="OnMorphResetVertexSel"
+                                    />
+                            </StackPanel>
+                        </Expander>
+                        <Expander Header ="Controller" IsExpanded="False">
+                            <StackPanel Orientation="Vertical"
+                                    Margin="2">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Button Content="Show" Grid.Column="0" Grid.Row="0"
+                                    />
+                                    <Button Content="Copy" Grid.Column="1" Grid.Row="0"
+                                    />
+                                    <Button Content="Paste" Grid.Column="0" Grid.Row="1"
+                                    />
+                                    <Button Content="Paste Inst" Grid.Column="1" Grid.Row="1"
+                                    />
+                                    <Button Content="Add Bezier" Grid.Column="0" Grid.Row="2"
+                                    />
+                                    <Button Content="Add Script" Grid.Column="1" Grid.Row="2"
+                                    />
+                                    <Button Content="Patch Mirror Avar" Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2"
+                                    />
+                                    <CheckBox Content="Include Script Text"
+                                              Grid.Column="0"
+                                              Grid.Row="4" 
+                                              Grid.ColumnSpan="2"
+                                              Margin="4"
+                                              IsChecked="{Binding MorphIncludeScript}"
+                                          />
+                                    <Button Content="Save XML" 
+                                            Grid.Column="0"
+                                            Grid.Row="5"
+                                            Click="OnMorphSaveXml"/>
+                                    <Button Content="Load XML"
+                                            Grid.Column="1"
+                                            Grid.Row="5"
+                                            Click="OnMorphLoadXml"/>
+                                </Grid>
+
+                            </StackPanel>
+                        </Expander>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Data Projection"  DataContext="{x:Static local:Main.Instance}" >
+                <Grid  Width="190"
+                   Margin="2"
+                   HorizontalAlignment="Left">
+                    <Border BorderBrush="{StaticResource MaxBtnOverBackground}" BorderThickness="1"/>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel Orientation="Vertical"
+                                Grid.Row="0"
+                            HorizontalAlignment="Stretch"
+                            Margin="15,0,15,0">
+                            <StackPanel.Resources>
+                                <Style TargetType="CheckBox" BasedOn="{StaticResource CheckBoxStyle}">
+                                    <Setter Property="Margin" Value="0,3,0,3"/>
+                                </Style>
+                            </StackPanel.Resources>
+                            <local:PickNodeBtn Margin="0,15,0,15"
+                                           NodeName="{Binding Projection.RefNode.Name , Source={x:Static local:Main.Instance}}"
+                                           BorderBrush="Green" 
+                                           OnNodePicked="OnDetectProjectionNodePicked">
+                                <local:PickNodeBtn.Style>
+                                    <Style TargetType="local:PickNodeBtn">
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Path = Projection.IsDetected,Source={x:Static local:Main.Instance}}" Value="True" >
+                                                <Setter Property="BorderThickness" Value="2"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </local:PickNodeBtn.Style>
+                            </local:PickNodeBtn>
+                            <StackPanel Orientation="Vertical"
+                                Margin="5,0,0,5"
+                            HorizontalAlignment="Stretch">
+                                <CheckBox Name="checkBoxSkin"
+                                Content="Skin"
+                                      IsChecked="{Binding Path=Projection.IsSkin}"/>
+                                <CheckBox Content="Dual Quaternion"
+                                  Margin="15,0,0,0" 
+                                         IsEnabled="{Binding Path=Projection.IsSkin}"
+                                       IsChecked="{Binding Path=Projection.IsDualQuat}"/>
+                                <CheckBox Content="Remove unused Bones"
+                                      Margin="15,0,0,0"
+                                      IsEnabled="{Binding Path=Projection.IsSkin}"
+                                      IsChecked="{Binding Path=Projection.IsUnusedBones}"/>
+
+                                <CheckBox Content="Morph"
+                                      IsChecked="{Binding Path=Projection.IsMorph}"
+                                  Margin="0,10,0,3"/>
+                                <CheckBox Content="Script"
+                                         IsEnabled="{Binding Path=Projection.IsMorph}"
+                                      IsChecked="{Binding Path=Projection.IsScript}"
+                                  Margin="15,0,0,0"/>
+                                <CheckBox Content="Remove unused Targets"
+                                       IsEnabled="{Binding Path=Projection.IsMorph}"
+                                  IsChecked="{Binding Path=Projection.IsUnusedTargets}"
+                                      Margin="15,0,0,0"/>
+                                <CheckBox Content="Map Channel"
+                                      IsChecked="{Binding Path=Projection.IsMapChannel}"
+                                   Margin="0,10,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Grid
+                            Grid.Row="1"
+                            HorizontalAlignment="Stretch"
+                            Margin="15,0,15,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <ListBox 
+                                BorderBrush="{StaticResource MaxBtnOverBackground}"
+                                BorderThickness="1"
+                                ItemsSource="{Binding Projection.MapChannels}" 
+                                 SelectionMode="Extended"
+                            HorizontalAlignment="Stretch"
+                            Margin="0,0,0,0"
+                             Background="{StaticResource MaxPairBackground}">
+                                <ListBox.Resources>
+                                    <Style TargetType="ListBoxItem" BasedOn="{StaticResource ListBoxItemStyle}">
+                                        <Setter Property="IsSelected" Value="{Binding IsItemSelected}"/>
+                                    </Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockStyle}"/>
+                                    <DataTemplate DataType="{x:Type local:MapItem}">
+                                        <Grid>
+                                            <TextBlock Text="{Binding Name, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.Resources>
+                            </ListBox>
+                            <Button Content="Project To"
+                                Click="OnProjectDataClick"
+                                Grid.Row="1"
+                                Margin="0,15,0,15"/>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

@@ -1,0 +1,146 @@
+﻿<UserControl x:Class="Bubo.SpinnerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d"
+             d:DesignWidth="100"
+             d:DesignHeight="20"
+             Foreground="{DynamicResource MainForeground}">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../UICustomization.xaml" />
+                <ResourceDictionary Source="../UIResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <Style TargetType="Button" BasedOn="{StaticResource ButtonIconStyle}">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Width" Value="15"/>
+                <Setter Property="Height" Value="Auto"/>
+                <Setter Property="BorderBrush" Value="{StaticResource MaxBtnOverBackground}"/>
+                <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}}"/>
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Border DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}">
+        <Border.Style>
+            <Style TargetType="Border">
+                <Setter Property="BorderBrush" Value="{StaticResource MaxBtnOverBackground}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsAnimated}" Value="True">
+                        <Setter Property="BorderBrush" Value="Red"/>
+                        <Setter Property="BorderThickness" Value="0.5"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
+        
+        <Grid Name="mgrid"
+              PreviewMouseMove="OnPreviewMouseMoveGrid"
+              MouseDown="OnMouseDownGrid"
+              PreviewMouseUp="OnPreviewMouseUpGrid"
+              SnapsToDevicePixels="True" >
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsEnabled}" Value="False">
+                            <Setter Property="Background" Value="DarkGray"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0"  >
+                <Grid.Background>
+                    <MultiBinding Converter ="{StaticResource BlendToColorConverter}">
+                        <Binding Path="IsBlendColor"/>
+                        <Binding Path="IsEnabled"/>
+                        <Binding Path="BlendColor"/>
+                        <Binding Path="BlendColorScript"/>
+                        <Binding Path="SpinnerValue"/>
+                        <Binding Path="Maximum"/>
+                    </MultiBinding>
+                </Grid.Background>
+
+                <TextBox   
+                    FontSize="10"
+                        IsReadOnly="True"
+                        HorizontalAlignment="Stretch"
+                        TextAlignment="Center"
+                        TextWrapping="NoWrap"
+                        BorderThickness="0" 
+                        TextOptions.TextFormattingMode="Display"
+                        MouseDoubleClick="OnDoubleClickValue"
+                        KeyUp="OnKeyUpValueBlock"
+                        LostKeyboardFocus="OnKeyboardLostFocusValueBlock">
+                    <TextBox.Style>
+                        <Style TargetType="TextBox" BasedOn="{StaticResource TextBoxStyle}">
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property ="Text"  Value="{Binding SpinnerValue, Mode=OneWay , StringFormat=N2}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding FormatValue}" Value="0">
+                                    <Setter Property="Text"  Value="{Binding SpinnerValue, Mode=OneWay , StringFormat=N0}"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding FormatValue}" Value="1">
+                                    <Setter Property="Text"  Value="{Binding SpinnerValue, Mode=OneWay , StringFormat=N1}"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding FormatValue}" Value="3">
+                                    <Setter Property="Text"  Value="{Binding SpinnerValue, Mode=OneWay , StringFormat=N3}"/>
+                                </DataTrigger>
+                                <Trigger Property="IsSelectionActive" Value="True">
+                                    <Setter Property="Foreground" Value="White"/>
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Foreground" Value="White"/>
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="False">
+                                    <Setter Property="Foreground" Value="White"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBox.Style>
+                </TextBox>
+            </Grid>
+            <Grid Grid.Column="1"
+              Background="{StaticResource MaxMainBackground}">
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property ="Visibility"  Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsArrow}" Value="False">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Button Grid.Row="0"
+                    BorderThickness="1,0,0,1"
+                         Padding ="0,-1,0,0"
+                            Content="+"
+                        FontSize="8"
+                    PreviewMouseDown="OnPreviewMouseDownPlus">
+                   
+                </Button>
+                <Button Grid.Row="1"
+                        Padding ="0,-2,0,0"
+                        Content="-"
+                        BorderThickness="1,0,0,0"
+                        PreviewMouseDown="OnPreviewMouseDownMinus">
+                </Button>
+            </Grid>
+        </Grid>
+
+    </Border>
+</UserControl>

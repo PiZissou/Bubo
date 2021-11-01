@@ -1,0 +1,257 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{F77687E0-D346-4689-A144-316236ED62E3}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Bubo</RootNamespace>
+    <AssemblyName>Bubo</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <OutputPath>bin\</OutputPath>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == '2020|AnyCPU' ">
+    <AssemblyName>Bubo_2020</AssemblyName>
+    <DefineConstants>MAX_2020</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>8.0</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == '2021|AnyCPU'">
+    <AssemblyName>Bubo_2021</AssemblyName>
+    <DefineConstants>MAX_2021</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>8.0</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == '2022|AnyCPU'">
+    <DefineConstants>MAX_2022</DefineConstants>
+    <AssemblyName>Bubo_2022</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>8.0</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Autodesk.Max.2020" Condition="$(DefineConstants.Contains(MAX_2020))">
+      <HintPath>Libs\Autodesk.Max.2020.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Autodesk.Max.2021" Condition="$(DefineConstants.Contains(MAX_2021))">
+      <HintPath>Libs\Autodesk.Max.2021.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Autodesk.Max.2022" Condition="$(DefineConstants.Contains(MAX_2022))">
+      <HintPath>Libs\Autodesk.Max.2022.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="ManagedServices.2020" Condition="$(DefineConstants.Contains(MAX_2020))">
+      <HintPath>Libs\ManagedServices.2020.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="ManagedServices.2021" Condition="$(DefineConstants.Contains(MAX_2021))">
+      <HintPath>Libs\ManagedServices.2021.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="ManagedServices.2022" Condition="$(DefineConstants.Contains(MAX_2022))">
+      <HintPath>Libs\ManagedServices.2022.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="MaxCustomControls.2020" Condition="$(DefineConstants.Contains(MAX_2020))">
+      <HintPath>Libs\MaxCustomControls.2020.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="MaxCustomControls.2021" Condition="$(DefineConstants.Contains(MAX_2021))">
+      <HintPath>Libs\MaxCustomControls.2021.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="MaxCustomControls.2022" Condition="$(DefineConstants.Contains(MAX_2022))">
+      <HintPath>Libs\MaxCustomControls.2022.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UiViewModels.2020" Condition="$(DefineConstants.Contains(MAX_2020))">
+      <HintPath>Libs\UiViewModels.2020.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UiViewModels.2021" Condition="$(DefineConstants.Contains(MAX_2021))">
+      <HintPath>Libs\UiViewModels.2021.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UiViewModels.2022" Condition="$(DefineConstants.Contains(MAX_2022))">
+      <HintPath>Libs\UiViewModels.2022.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsFormsIntegration" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="API\APIMorph.cs" />
+    <Compile Include="API\APISkin.cs" />
+    <Compile Include="Converters\BlendToColorConverter.cs" />
+    <Compile Include="CoreMods\MorphMod\ChannelData.cs" />
+    <Compile Include="CoreMods\MorphMod\MorphData.cs" />
+    <Compile Include="CoreMods\MorphMod\MorphModLib.cs" />
+    <Compile Include="CoreMods\SkinMod\SkinVtxWeights.cs" />
+    <Compile Include="CoreMods\SkinMod\SkinModLib.cs" />
+    <Compile Include="CoreMods\SkinMod\RestoreSkinWeights.cs" />
+    <Compile Include="Engine\INI.cs" />
+    <Compile Include="Converters\BackgroundItemConverter.cs" />
+    <Compile Include="Converters\ClassToBoolConverter.cs" />
+    <Compile Include="Converters\EnumToBoolConverter.cs" />
+    <Compile Include="Converters\ExcludeNameConverter.cs" />
+    <Compile Include="Converters\VisibleItemConverter.cs" />
+    <Compile Include="UI\CustToggleButton.cs" />
+    <Compile Include="Engine\Items\MapItem.cs" />
+    <Compile Include="Engine\PolySym.cs" />
+    <Compile Include="Engine\ProjectDataEngine.cs" />
+    <Compile Include="LinkMax\LinkMax.cs" />
+    <Compile Include="Engine\Main.cs" />
+    <Compile Include="API\API.cs" />
+    <Compile Include="Engine\MorphEngine.cs" />
+    <Compile Include="Engine\Items\MorphItem.cs" />
+    <Compile Include="CoreMods\IBuboMod.cs" />
+    <Compile Include="Engine\Items\LayerItem.cs" />
+    <Compile Include="Engine\Items\MaxItem.cs" />
+    <Compile Include="CoreMods\MorphMod\MorphMod.cs" />
+    <Compile Include="Engine\Items\SkinItem.cs" />
+    <Compile Include="CoreMods\SkinMod\SkinData.cs" />
+    <Compile Include="CoreMods\SkinMod\SkinMod.cs" />
+    <Compile Include="CoreMods\SkinMod\SkinVtx.cs" />
+    <Compile Include="Engine\ListTree.cs" />
+    <Compile Include="Engine\SkinEngine.cs" />
+    <Compile Include="Engine\Items\WeightItem.cs" />
+    <Compile Include="LinkMax\TimeChangedCallback.cs" />
+    <Compile Include="UI\GetTextUI.xaml.cs">
+      <DependentUpon>GetTextUI.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\PickNodeBtn.xaml.cs">
+      <DependentUpon>PickNodeBtn.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\UISettings.cs" />
+    <Compile Include="UI\Spinner\SpinnerControl.xaml.cs">
+      <DependentUpon>SpinnerControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Engine\Items\TreeItem.cs" />
+    <Compile Include="UI\TatWindow.xaml.cs">
+      <DependentUpon>TatWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\UICustomization.xaml.cs">
+      <DependentUpon>UICustomization.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Spinner\ValueChangedArg.cs" />
+    <Page Include="UI\BuboUI.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="UI\BuboUI.xaml.cs">
+      <DependentUpon>BuboUI.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Page Include="UI\GetTextUI.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\PickNodeBtn.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Spinner\SpinnerControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\TatWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\UIResources.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\UICustomization.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Engine\BuboEngine.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\extract.png" />
+    <Resource Include="Resources\hold.png" />
+    <Resource Include="Resources\morph.png" />
+    <Resource Include="Resources\off.png" />
+    <Resource Include="Resources\on.png" />
+    <Resource Include="Resources\bone.png" />
+    <Resource Include="Resources\remove.png" />
+    <Resource Include="Resources\replaceBone.png" />
+    <Resource Include="Resources\resetPose.png" />
+    <Resource Include="Resources\unHold.png" />
+    <Resource Include="Resources\zeus.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\add.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\unHoldAll.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Libs\Autodesk.Max.2020.dll" />
+    <Content Include="Libs\Autodesk.Max.2021.dll" />
+    <Content Include="Libs\ManagedServices.2020.dll" />
+    <Content Include="Libs\ManagedServices.2021.dll" />
+    <Resource Include="Resources\windowClose.png" />
+    <Resource Include="Resources\windowMax.png" />
+    <Resource Include="Resources\windowMin.png" />
+    <Resource Include="Resources\windowRestore.png" />
+    <Resource Include="Resources\displayFaces.png" />
+    <Resource Include="Resources\displayVertices.png" />
+    <Resource Include="Resources\Plus.png" />
+    <Resource Include="Resources\Minus.png" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="..\Lib\Lib.projitems" Label="Shared" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
