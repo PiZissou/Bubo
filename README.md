@@ -6,6 +6,7 @@ DESCRIPTION: Tool for rigging department. skin, morph/blendshape, transfert mesh
 AUTHOR: Pierre Lasbignes<br />
 DATE: 2019<br />
 
+
 # API
 
 This Api can be used in 3dsmax with maxscript scripting language.
@@ -31,3 +32,6 @@ This Api can be used in 3dsmax with maxscript scripting language.
     (string) 	BuboApi.GetBasename (string) s
     (string) 	BuboApi.ReplaceBasename (string) s (string) replaceS
 
+## Skin methods
+
+![alt text](Capture_Skin.PNG)
