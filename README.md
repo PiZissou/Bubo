@@ -6,8 +6,19 @@ DESCRIPTION: Tool for rigging department. skin, morph/blendshape, transfert mesh
 AUTHOR: Pierre Lasbignes<br />
 DATE: 2019<br />
 
+# What is it?
 
-# INSTALL & LOADING 
+	Bubo is a window tool created for 3dsmax 2020-2021.
+	It help riggers to skin and ad morph to their characters with extras commands.
+	Some of them are:
+	- Clear user interface with Skin treeview and Morph treeview with custom filters, to find | add | select | delete the wanted items quickly. 
+	- Symetrie Mesh detection to mirror skin weigths.
+	- Symetrie Mesh detection to mirror mropher.
+	- Hold/unhold Bones to lock/unlock skin weights and perform more precise skin deformation.
+	- project skin and morph to one character to another with different topology mesh.
+	...
+
+# Install & Loading 
 	/!\ Warning, this project needs externals TAT libraries that might not be included. 
 	
 	- copy Bubo folder  to [yourCustomPath]
