@@ -22,15 +22,15 @@ This Api can be used inside 3dsmax with maxscript scripting language.
 ## Global
 	(void)		Bubo.ShowUI() 
 	(void)		Bubo.CloseUI()
-    (void)		BuboApi.Refresh() 
-    (void)		BuboApi.Dispose() -- disable all events
-    (void)		BuboApi.UnDispose() -- enable all events
-    (void)		BuboApi.ResetConfig() -- reset xml config of treeview groups
-    (bool)  	BuboApi.ProjectMorph (int) sHandle (int) dHandle (string[]) channelNames (bool) isScript (bool) isUnusedTargets (bool) createSkwIfNotExists
-    (bool)  	BuboApi.ProjectSkin (int) sHandle (int) dHandle (bool) isDualQuat (bool) isUnusedBones
-    (int[]) 	BuboApi.MapIndices (int) sHandle (int) dHandle
-    (string) 	BuboApi.GetBasename (string) s
-    (string) 	BuboApi.ReplaceBasename (string) s (string) replaceS
+    	(void)		BuboApi.Refresh() 
+    	(void)		BuboApi.Dispose() -- disable all events
+    	(void)		BuboApi.UnDispose() -- enable all events
+    	(void)		BuboApi.ResetConfig() -- reset xml config of treeview groups
+    	(bool)  	BuboApi.ProjectMorph (int) sHandle (int) dHandle (string[]) channelNames (bool) isScript (bool) isUnusedTargets (bool) createSkwIfNotExists
+    	(bool)  	BuboApi.ProjectSkin (int) sHandle (int) dHandle (bool) isDualQuat (bool) isUnusedBones
+    	(int[]) 	BuboApi.MapIndices (int) sHandle (int) dHandle
+    	(string) 	BuboApi.GetBasename (string) s
+    	(string) 	BuboApi.ReplaceBasename (string) s (string) replaceS
 
 ## Skin methods
 
@@ -39,26 +39,26 @@ This Api can be used inside 3dsmax with maxscript scripting language.
 	(float) 	BuboApi.CurrentSkinWeight -- access property of the UI
 	(SkinMod) 	BuboApi.GetSkinMod (int) modifierHandle  (int) nodeHandle
 	(bool)		BuboApi.SaveSkin (int) modifierHandle (int) nodeHandle  (string) filename
-	(int[])     BuboApi.GetSkinBones (int) modifierHandle
+	(int[])     	BuboApi.GetSkinBones (int) modifierHandle
 	(bool)		BuboApi.MixSkin  (int) modifierHandle  (int)  nodeHandle  (string[])  filenames   (float[])  mix
 	(bool)  	BuboApi.LoadSkin (int) modifierHandle  (int)  nodeHandle  (string)  fileName
 	(bool)		BuboApi.LoadSkin (int) modifierHandle  (int)  nodeHandle  (string)  fileName  (bool) onlySelected
 	(bool)		BuboApi.LoadSkin (int) modifierHandle  (int)  nodeHandle  (string)  fileName  (int[]) verticesToSkin
-    (void) 		BuBoApi.SetSkinWeight (int) modifierHandle (int) nodeHandle  (float) val (bool) addValue 
+    	(void) 		BuBoApi.SetSkinWeight (int) modifierHandle (int) nodeHandle  (float) val (bool) addValue 
 	(void)		BuboApi.SkinWeightPlus()
 	(void)		BuboApi.SkinWeightMinus()
-	(void)      BuboApi.HoldBoneToggle()
-	(void)      BuboApi.SkinGrow()
-	(void)      BuboApi.SkinShrink()
-	(void)      BuboApi.SkinLoop()
-	(void)      BuboApi.SkinRing()
-	(void)      BuboApi.SkinNextBone()
+	(void)      	BuboApi.HoldBoneToggle()
+	(void)      	BuboApi.SkinGrow()
+	(void)      	BuboApi.SkinShrink()
+	(void)      	BuboApi.SkinLoop()
+	(void)      	BuboApi.SkinRing()
+	(void)      	BuboApi.SkinNextBone()
 	
 
 ## Morph methods
 
 ![alt text](Capture_Morph.PNG)
 
-	(bool) BuboApi.SaveMorphChannels (int) modifierHandle (int) nodeHandle (string) filename  (string[]) channelNames
-	(bool) BuboApi.LoadMorphChannels (int) modifierHandle (int) nodeHandle (string) filename  (string[]) channelNames  (bool) clearChannels  (bool)  keepTargetNodes
-	(bool) BuboApi.MixMorphChannels (int) modifierHandle (int) nodeHandle (string[]) filenames  (float[]) mixValues  (string[])  channelNames  (bool)  clearChannels  (bool) keepTargetNodes
+	(bool) 		BuboApi.SaveMorphChannels (int) modifierHandle (int) nodeHandle (string) filename  (string[]) channelNames
+	(bool) 		BuboApi.LoadMorphChannels (int) modifierHandle (int) nodeHandle (string) filename  (string[]) channelNames  (bool) clearChannels  (bool) keepTargetNodes
+	(bool) 		BuboApi.MixMorphChannels (int) modifierHandle (int) nodeHandle (string[]) filenames  (float[]) mixValues  (string[])  channelNames  (bool)  clearChannels  (bool) keepTargetNodes
