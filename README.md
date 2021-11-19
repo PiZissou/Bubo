@@ -7,6 +7,11 @@ AUTHOR: Pierre Lasbignes<br />
 DATE: 2019<br />
 
 
+# INSTALL & LOADING
+	copy Bubo to [yourCustomPath]
+	the commande "fileIn	[yourCustomPath]\Bubo\Mxs\Bubo.ms"  will execute the file. This is the loader of the project
+	/!\ Warning, this project needs externals TAT libraries to work Properly 
+	
 # API
 
 This Api can be used inside 3dsmax with maxscript scripting language.
@@ -15,9 +20,6 @@ This Api can be used inside 3dsmax with maxscript scripting language.
 	.\Bubo\API\API.cs
 	.\Bubo\API\APIMorph.cs
 	.\Bubo\API\APISkin.cs
-
-## Dotnet Objects
-	(PolySym)  	BuboApi.PolySym  -- access to PolySym object , detect symmetry points of a mesh to perform copy, paste and invers position points. 
 
 ## Global
 	(void)		Bubo.ShowUI() 
@@ -58,7 +60,7 @@ This Api can be used inside 3dsmax with maxscript scripting language.
 ## Morph methods
 
 ![alt text](Capture_Morph.PNG)
-
+	(PolySym)  	BuboApi.PolySym  -- access to PolySym object , detect symmetry points of a mesh to perform copy, paste and invers position points. 
 	(bool) 		BuboApi.SaveMorphChannels (int) modifierHandle (int) nodeHandle (string) filename  (string[]) channelNames
 	(bool) 		BuboApi.LoadMorphChannels (int) modifierHandle (int) nodeHandle (string) filename  (string[]) channelNames  (bool) clearChannels  (bool) keepTargetNodes
 	(bool) 		BuboApi.MixMorphChannels (int) modifierHandle (int) nodeHandle (string[]) filenames  (float[]) mixValues  (string[])  channelNames  (bool)  clearChannels  (bool) keepTargetNodes
