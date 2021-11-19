@@ -36,6 +36,29 @@ This Api can be used in 3dsmax with maxscript scripting language.
 
 ![alt text](Capture_Skin.PNG)
 
+	(float) 	BuboApi.CurrentSkinWeight -- access property of the UI
+	(SkinMod) 	BuboApi.GetSkinMod (int) modifierHandle  (int) nodeHandle
+	(bool)		BuboApi.SaveSkin (int) modifierHandle (int) nodeHandle  (string) filename
+	(int[])     BuboApi.GetSkinBones (int) modifierHandle
+	(bool)		BuboApi.MixSkin  (int) modifierHandle  (int)  nodeHandle  (string[])  filenames   (float[])  mix
+	(bool)  	BuboApi.LoadSkin (int) modifierHandle  (int)  nodeHandle  (string)  fileName
+	(bool)		BuboApi.LoadSkin (int) modifierHandle  (int)  nodeHandle  (string)  fileName  (bool) onlySelected
+	(bool)		BuboApi.LoadSkin (int) modifierHandle  (int)  nodeHandle  (string)  fileName  (int[]) verticesToSkin
+    (void) 		BuBoApi.SetSkinWeight (int) modifierHandle (int) nodeHandle  (float) val (bool) addValue 
+	(void)		BuboApi.SkinWeightPlus()
+	(void)		BuboApi.SkinWeightMinus()
+	(void)      BuboApi.HoldBoneToggle()
+	(void)      BuboApi.SkinGrow()
+	(void)      BuboApi.SkinShrink()
+	(void)      BuboApi.SkinLoop()
+	(void)      BuboApi.SkinRing()
+	(void)      BuboApi.SkinNextBone()
+	
+
 ## Morph methods
 
 ![alt text](Capture_Morph.PNG)
+
+	(bool) BuboApi.SaveMorphChannels (int) modifierHandle (int) nodeHandle (string) filename  (string[]) channelNames
+	(bool) BuboApi.LoadMorphChannels (int) modifierHandle (int) nodeHandle (string) filename  (string[]) channelNames  (bool) clearChannels  (bool)  keepTargetNodes
+	(bool) BuboApi.MixMorphChannels (int) modifierHandle (int) nodeHandle (string[]) filenames  (float[]) mixValues  (string[])  channelNames  (bool)  clearChannels  (bool) keepTargetNodes
