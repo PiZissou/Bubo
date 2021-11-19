@@ -22,15 +22,15 @@ This Api can be used inside 3dsmax with maxscript scripting language.
 ## Global
 	(void)		Bubo.ShowUI() 
 	(void)		Bubo.CloseUI()
-    	(void)		BuboApi.Refresh() 
-    	(void)		BuboApi.Dispose() -- disable all events
-    	(void)		BuboApi.UnDispose() -- enable all events
-    	(void)		BuboApi.ResetConfig() -- reset xml config of treeview groups
-    	(bool)  	BuboApi.ProjectMorph (int) sHandle (int) dHandle (string[]) channelNames (bool) isScript (bool) isUnusedTargets (bool) createSkwIfNotExists
-    	(bool)  	BuboApi.ProjectSkin (int) sHandle (int) dHandle (bool) isDualQuat (bool) isUnusedBones
-    	(int[]) 	BuboApi.MapIndices (int) sHandle (int) dHandle
-    	(string) 	BuboApi.GetBasename (string) s
-    	(string) 	BuboApi.ReplaceBasename (string) s (string) replaceS
+	(void)		BuboApi.Refresh() 
+	(void)		BuboApi.Dispose() -- disable all events
+	(void)		BuboApi.UnDispose() -- enable all events
+	(void)		BuboApi.ResetConfig() -- reset xml config of treeview groups
+	(bool)  	BuboApi.ProjectMorph (int) sHandle (int) dHandle (string[]) channelNames (bool) isScript (bool) isUnusedTargets (bool) createSkwIfNotExists
+	(bool)  	BuboApi.ProjectSkin (int) sHandle (int) dHandle (bool) isDualQuat (bool) isUnusedBones
+	(int[]) 	BuboApi.MapIndices (int) sHandle (int) dHandle
+	(string) 	BuboApi.GetBasename (string) s
+	(string) 	BuboApi.ReplaceBasename (string) s (string) replaceS
 
 ## Skin methods
 
