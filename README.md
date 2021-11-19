@@ -8,30 +8,29 @@ DATE: 2019<br />
 
 # What is it?
 
-	Bubo is a window tool created for 3dsmax 2020-2021.
-	It help riggers to skin and ad morph to their characters with extras commands.
-	Some of them are:
-	- Clear user interface with Skin treeview and Morph treeview with custom filters, to find | add | select | delete the wanted items quickly. 
-	- Symetrie Mesh detection to mirror skin weigths.
-	- Symetrie Mesh detection to mirror mropher.
-	- Hold/unhold Bones to lock/unlock skin weights and perform more precise skin deformation.
-	- project skin and morph to one character to another with different topology mesh.
+  Bubo is a window tool created for 3dsmax 2020-2021.
+  It help riggers to skin and ad morph to their characters with extras commands.
+  Some of them are:
+  - Clear user interface with Skin treeview and Morph treeview with custom filters, to find | add | select | delete the wanted items quickly. 
+  - Symetrie Mesh detection to mirror skin weigths.
+  - Symetrie Mesh detection to mirror mropher.
+  - Hold/unhold Bones to lock/unlock skin weights and perform more precise skin deformation.
+  - project skin and morph to one character to another with different topology mesh.
 	...
 
 # Install & Loading 
-	/!\ Warning, this project needs externals TAT libraries that might not be included. 
-	
-	- copy Bubo folder  to [yourCustomPath]
-	- the commande "fileIn	[yourCustomPath]\Bubo\Mxs\Bubo.ms"  will execute the file. This is the loader of the project
+  /!\ Warning, this project needs externals TAT libraries that might not be included. 
+
+  - copy Bubo folder  to [yourCustomPath]
+  - the commande "fileIn	[yourCustomPath]\Bubo\Mxs\Bubo.ms"  will execute the file. This is the loader of the project
 	
 # API
 
 This Api can be used inside 3dsmax with maxscript scripting language.
 
-## Files Path 
-	.\Bubo\API\API.cs
-	.\Bubo\API\APIMorph.cs
-	.\Bubo\API\APISkin.cs
+  .\Bubo\API\API.cs
+  .\Bubo\API\APIMorph.cs
+  .\Bubo\API\APISkin.cs
 
 ## Global
 	(void)		Bubo.ShowUI() 
