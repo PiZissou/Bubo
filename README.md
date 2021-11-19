@@ -35,3 +35,7 @@ This Api can be used in 3dsmax with maxscript scripting language.
 ## Skin methods
 
 ![alt text](Capture_Skin.PNG)
+
+## Morph methods
+
+![alt text](Capture_Morph.PNG)
