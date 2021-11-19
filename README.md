@@ -9,7 +9,7 @@ DATE: 2019<br />
 
 # API
 
-This Api can be used in 3dsmax with maxscript scripting language.
+This Api can be used inside 3dsmax with maxscript scripting language.
 
 ## Files Path 
 	.\Bubo\API\API.cs
