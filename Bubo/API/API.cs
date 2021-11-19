@@ -35,24 +35,6 @@ namespace Bubo
                 return BuboUI.Instance;
             }
         }
-        public MaxForm GetControl()
-        {
-            /*             public ElementHost CtrlHost { get; } = new ElementHost();
-                    public MainUI()
-                    {
-                        Activate();
-                        CtrlHost.Dock = DockStyle.Fill;
-                        Controls.Add(CtrlHost);
-                        ShowInTaskbar = false;*/
-            MaxForm form = new MaxForm();
-            ElementHost ctrlHost = new ElementHost();
-            //ctrlHost.Child = UI;
-            ctrlHost.Dock = DockStyle.Fill;
-            form.Controls.Add(ctrlHost);
-            form.ShowInFrame();
-            // form.Text = "MAXFORM Bubo";
-            return form;
-        }
 
         public void Dispose()
         {
