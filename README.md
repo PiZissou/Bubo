@@ -1,9 +1,10 @@
 # Bubo
 
-Copyright (c) 1998-2018 TATProductions.
+Copyright (c) TATProductions.
 
 DESCRIPTION: Tool for rigging department. skin, morph/blendshape, transfert mesh datas.
 AUTHOR: Pierre Lasbignes
+DATE: 2019
 
 # API
 
