@@ -2,9 +2,9 @@
 
 Copyright (c) TATProductions.
 
-DESCRIPTION: Tool for rigging department. skin, morph/blendshape, transfert mesh datas.
-AUTHOR: Pierre Lasbignes
-DATE: 2019
+DESCRIPTION: Tool for rigging department. skin, morph/blendshape, transfert mesh datas.<br />
+AUTHOR: Pierre Lasbignes<br />
+DATE: 2019<br />
 
 # API
 
