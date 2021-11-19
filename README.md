@@ -5,13 +5,14 @@ Copyright (c) 1998-2018 TATProductions.
 DESCRIPTION: Tool for rigging department. skin, morph/blendshape, transfert mesh datas.
 AUTHOR: Pierre Lasbignes
 
-# API 
-
-.\Bubo\API\API.cs
-.\Bubo\API\APIMorph.cs
-.\Bubo\API\APISkin.cs
+# API
 
 This Api can be used in 3dsmax with maxscript scripting language.
+
+## Files Path 
+	.\Bubo\API\API.cs
+	.\Bubo\API\APIMorph.cs
+	.\Bubo\API\APISkin.cs
 
 ## Dotnet Objects
 	(PolySym)  	BuboApi.PolySym  -- access to PolySym object , detect symmetry points of a mesh to perform copy, paste and invers position points. 
