@@ -16,7 +16,12 @@ using System.Timers;
 
 namespace Bubo
 {
-
+    /// <summary>
+    /// Base class to manage custom treeview 
+    ///  - layer nodes can be automaticaly created from external xml file. 
+    ///   it allow to group MaxItems by categories
+    ///  - CRUD methods for nodes
+    /// </summary>
     public class BuboEngine : INotifyPropertyChanged
     {
         #region virtual properties
@@ -31,14 +36,7 @@ namespace Bubo
         public event PropertyChangedEventHandler PropertyChanged;
         public void NotifyPropertyChanged(string propName)
         {
-            try
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-            }
-            catch (Exception ex)
-            {
-                Tools.Print("NotifyPropertyChangedException : " + ex.Message, DebugLevel.EXCEPTION);
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
         XElement _config;
 
@@ -220,63 +218,47 @@ namespace Bubo
 
         public virtual IBuboMod AutoLoadMod(IINode node)
         {
-            try
-            {
-                IModifier m = MaxSDK.GetModifier(node, ClassID);
-                IBuboMod mod = LoadModInUI(m, node);
+            IModifier m = MaxSDK.GetModifier(node, ClassID);
+            IBuboMod mod = LoadModInUI(m, node);
 
-                if (mod != null)
-                {
-                    Tools.Format(MethodBase.GetCurrentMethod(), "Result : " + ModPanelNotification.AutoLoadTrue);
-                }
-                else
-                {
-                    Tools.Format(MethodBase.GetCurrentMethod(), "Result : " + ModPanelNotification.AutoLoadFalse);
-                }
-                return mod;
-            }
-            catch (Exception ex)
+            if (mod != null)
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
+                Tools.Format(MethodBase.GetCurrentMethod(), "Result : " + ModPanelNotification.AutoLoadTrue);
             }
+            else
+            {
+                Tools.Format(MethodBase.GetCurrentMethod(), "Result : " + ModPanelNotification.AutoLoadFalse);
+            }
+            return mod;
         }
         public virtual IBuboMod LoadModInUI(IModifier m, IINode node)
         {
-            try
+            IBuboMod validMod = CreateValidMod(m, node);
+            if (validMod != null)
             {
-                IBuboMod validMod = CreateValidMod(m, node);
-                if (validMod != null)
+
+                DisposeMod();
+                CurrentMod = validMod;
+                CurrentMod.RedrawViews();
+                if (_isConfigMode)
                 {
-   
-                    DisposeMod();
-                    CurrentMod = validMod;
-                    CurrentMod.RedrawViews();
-                    if (_isConfigMode)
-                    {
-                        LoadConfig();
-                        ConfigLayers(CurrentMod.MaxItems, TreeRoot);
-                        ConfigLayerDefault(CurrentMod.MaxItems, DefaultLayer);
-                    }
-                    else
-                    {
-                        ConfigLayerDefault(CurrentMod.MaxItems, TreeRoot);
-                    }
-                    SelectItem(CurrentMod.Selected, false);
-                    _maxItemCount = CurrentMod.Count;
-                    _maxItemSelected = CurrentMod.Selected;
+                    LoadConfig();
+                    ConfigLayers(CurrentMod.MaxItems, TreeRoot);
+                    ConfigLayerDefault(CurrentMod.MaxItems, DefaultLayer);
                 }
                 else
                 {
-                    Tools.Format(MethodBase.GetCurrentMethod(), "Result : " + LoadModNotification.NULL_Input);
+                    ConfigLayerDefault(CurrentMod.MaxItems, TreeRoot);
                 }
-                return CurrentMod;
+                SelectItem(CurrentMod.Selected, false);
+                _maxItemCount = CurrentMod.Count;
+                _maxItemSelected = CurrentMod.Selected;
             }
-            catch (Exception ex)
+            else
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
+                Tools.Format(MethodBase.GetCurrentMethod(), "Result : " + LoadModNotification.NULL_Input);
             }
+            return CurrentMod;
         }
         public virtual IBuboMod  LoadCurrentMod()
         {
@@ -284,35 +266,21 @@ namespace Bubo
         }
         public virtual IBuboMod CreateValidMod(IModifier m, IINode node)
         {
-            try
+            if (node != null)
             {
-                if (node != null)
-                {
-                    NodeName = node.Name;
-                }
-            }
-            catch(Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                NodeName = node.Name;
             }
             return null;
         }
         public virtual void OnModDeleted(IModifier m, IINode node)
         {
-            try
+            if (CurrentMod != null && !MaxSDK.ModifierExists(CurrentMod.Modifier, node))
             {
-                if (CurrentMod != null && !MaxSDK.ModifierExists(CurrentMod.Modifier, node))
-                {
-                    string msg = "Modifier DELETED";
-                    Tools.Format(MethodBase.GetCurrentMethod(), msg);
-                    DisposeMod();
-                    LoadModInUI(m, node);
-                   
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                string msg = "Modifier DELETED";
+                Tools.Format(MethodBase.GetCurrentMethod(), msg);
+                DisposeMod();
+                LoadModInUI(m, node);
+
             }
         }
         public void DeleteMod()
@@ -324,24 +292,16 @@ namespace Bubo
         }
         public virtual void OnNodeTabChanged()
         {
-            try
+            if (CurrentMod != null)
             {
-                Tools.Format(MethodBase.GetCurrentMethod(), "NODE_TAB");
-                if (CurrentMod != null)
+                if (CurrentMod.Count != CurrentMod.MaxItems.Count)
                 {
-                    if (CurrentMod.Count != CurrentMod.MaxItems.Count)
-                    {
-                        LoadModInUI(CurrentMod.Modifier , CurrentMod.Node);
-                    }
-                    else
-                    {
-                        CurrentMod.RedrawUI(RedrawUIOption.Full);
-                    }
+                    LoadModInUI(CurrentMod.Modifier, CurrentMod.Node);
                 }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                else
+                {
+                    CurrentMod.RedrawUI(RedrawUIOption.Full);
+                }
             }
         }
         public virtual void OnTimeChanged()
@@ -350,51 +310,36 @@ namespace Bubo
         }
         public virtual void OnNodeRenameChanged()
         {
-            try
+            if (CurrentMod != null)
             {
-                if (CurrentMod != null)
-                {
-                    NodeName = CurrentMod.Node.Name;
-                    CurrentMod.RedrawUI(RedrawUIOption.RefreshItems);
-                    Tools.Format(MethodBase.GetCurrentMethod(), CurrentMod.Modifier.Name);
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                NodeName = CurrentMod.Node.Name;
+                CurrentMod.RedrawUI(RedrawUIOption.RefreshItems);
+                Tools.Format(MethodBase.GetCurrentMethod(), CurrentMod.Modifier.Name);
             }
         }
         public virtual InModNotification InMod(IModifier m, IINode node)
         {
-            try
-            {
-                InModNotification notify;
+            InModNotification notify;
 
-                if (CurrentMod != null && MaxSDK.IsEquals(m, CurrentMod.Modifier))
+            if (CurrentMod != null && MaxSDK.IsEquals(m, CurrentMod.Modifier))
+            {
+                if (CurrentMod.Count != _maxItemCount)
                 {
-                    if (CurrentMod.Count != _maxItemCount  )
-                    {
-                        LoadModInUI(CurrentMod.Modifier, CurrentMod.Node);
-                        _maxItemCount = CurrentMod.Count;
-                        notify =  InModNotification.MaxItemCount;
-                    }
-                    else
-                    {
-                        notify = InModNotification.InMod;
-                    }
+                    LoadModInUI(CurrentMod.Modifier, CurrentMod.Node);
+                    _maxItemCount = CurrentMod.Count;
+                    notify = InModNotification.MaxItemCount;
                 }
                 else
                 {
-                    notify = InModNotification.NotMod;
+                    notify = InModNotification.InMod;
                 }
-                Tools.Format(MethodBase.GetCurrentMethod(), notify.ToString());
-                return notify;
             }
-            catch (Exception ex)
+            else
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return InModNotification.ExceptionInMod;
+                notify = InModNotification.NotMod;
             }
+            Tools.Format(MethodBase.GetCurrentMethod(), notify.ToString());
+            return notify;
         }
 
         #endregion
@@ -402,75 +347,51 @@ namespace Bubo
 
         public virtual XElement ResetConfig( XElement rootDoc )
         {
-            try
-            {
-                XElement configRoot = new XElement(KeyConfigRoot);
-                rootDoc.Add(configRoot);
+            XElement configRoot = new XElement(KeyConfigRoot);
+            rootDoc.Add(configRoot);
 
-                List<XElement> main = GrowConfig(configRoot, "Layer", new string[] { "Facial", "Body" });
-                List<XElement> facial = GrowConfig(main[0], "Layer", new string[] { "Upper Face", "Lower Face" });
-                List<XElement> UpperFace = GrowConfig(facial[0], "Layer", new string[] { "EyeBrow", "Eye" });
-                GrowConfig(UpperFace[0], "Pattern", new string[] { "EyeBrow_" });
-                GrowConfig(UpperFace[1], "Pattern", new string[] { "CreaseEye_", "Eye_", "MasterEye_" });
-                List<XElement> LowerFace = GrowConfig(facial[1], "Layer", new string[] { "Mouth" });
-                GrowConfig(LowerFace[0], "Pattern", new string[] { "UpperLips_", "LowerLips_", "MouthCorner_" });
+            List<XElement> main = GrowConfig(configRoot, "Layer", new string[] { "Facial", "Body" });
+            List<XElement> facial = GrowConfig(main[0], "Layer", new string[] { "Upper Face", "Lower Face" });
+            List<XElement> UpperFace = GrowConfig(facial[0], "Layer", new string[] { "EyeBrow", "Eye" });
+            GrowConfig(UpperFace[0], "Pattern", new string[] { "EyeBrow_" });
+            GrowConfig(UpperFace[1], "Pattern", new string[] { "CreaseEye_", "Eye_", "MasterEye_" });
+            List<XElement> LowerFace = GrowConfig(facial[1], "Layer", new string[] { "Mouth" });
+            GrowConfig(LowerFace[0], "Pattern", new string[] { "UpperLips_", "LowerLips_", "MouthCorner_" });
 
-                return configRoot;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
-            }
+            return configRoot;
         }
 
         public void SetBaseName (IINode node)
         {
-            try
+            string outName = "";
+            string[] buffer = node.Name.Split('_');
+            if (buffer.Count() > 1)
             {
-                string outName = "";
-                string[] buffer = node.Name.Split('_');
-                if (buffer.Count() > 1)
+                for (int i = 0; i < 2; i++)
                 {
-                    for (int i = 0; i < 2; i++)
+                    outName += buffer[i];
+                    if (i == 0)
                     {
-                        outName += buffer[i];
-                        if (i == 0)
-                        {
-                            outName += "_";
-                        }
+                        outName += "_";
                     }
-                    _baseName = outName;
                 }
-                else
-                {
-                    _baseName = "";
-                }
+                _baseName = outName;
             }
-            catch(Exception ex)
+            else
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(),ex);
+                _baseName = "";
             }
         }
         public List<XElement> GrowConfig(XElement xl, string type, IEnumerable<string> children)
         {
-            try
+            List<XElement> output = new List<XElement>();
+            foreach (string ch in children)
             {
-                List<XElement> output = new List<XElement>();
-                foreach (string ch in children)
-                {
-                    XElement el = new XElement(type, new XAttribute("name", ch));
-                    output.Add(el);
-                    xl.Add(el);
-                }
-                return output;
-
+                XElement el = new XElement(type, new XAttribute("name", ch));
+                output.Add(el);
+                xl.Add(el);
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return new List<XElement>();
-            }
+            return output;
         }
         public void DisposeConfig()
         {
@@ -480,371 +401,256 @@ namespace Bubo
         }
         public virtual void DisposeMod()
         {
-            try
+            if (CurrentMod != null && CurrentMod.MaxItems != null)
             {
-                if (CurrentMod != null && CurrentMod.MaxItems != null)
-                {
-                    CurrentMod.MaxItems.ClearTree();
-                }
-                ClearMaxItems(TreeRoot);
-                CurrentMod = null;
+                CurrentMod.MaxItems.ClearTree();
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            ClearMaxItems(TreeRoot);
+            CurrentMod = null;
         }
         public void LoadConfig()
         {
-            try
+            if (File.Exists(INI.ConfigFile))
             {
-                if (File.Exists(INI.ConfigFile))
+                if (_config == null)
                 {
-                    if (_config == null )
+                    ClearTree();
+                    _config = XElement.Load(INI.ConfigFile);
+                    XElement configRoot = _config.Element(KeyConfigRoot);
+                    if (configRoot != null)
                     {
-                        ClearTree();
-                        _config = XElement.Load(INI.ConfigFile);
-                        XElement configRoot = _config.Element(KeyConfigRoot);
-                        if (configRoot != null)
-                        {
-                            GetEndPatterns(configRoot, _excludeEndKey, ExcluEnds );
-                            GetEndPatterns(configRoot, _excludePatternKey, ExcluPatterns );
-                            GetLayerItems(configRoot, TreeRoot);
-                        }
-                        else
-                        {
-                            Tools.Format(MethodBase.GetCurrentMethod(), "ConfigRoot was not found!" );
-                        }
+                        GetEndPatterns(configRoot, _excludeEndKey, ExcluEnds);
+                        GetEndPatterns(configRoot, _excludePatternKey, ExcluPatterns);
+                        GetLayerItems(configRoot, TreeRoot);
+                    }
+                    else
+                    {
+                        Tools.Format(MethodBase.GetCurrentMethod(), "ConfigRoot was not found!");
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
             }
         }
         public void GetEndPatterns(XElement configRoot , string key , ICollection<string> patterns )
         {
-            try
+            patterns.Clear();
+            XElement excludeEnd = configRoot.Element(key);
+            if (excludeEnd != null)
             {
-                patterns.Clear();
-                XElement excludeEnd = configRoot.Element(key);
-                if (excludeEnd != null)
+                foreach (XElement xl in excludeEnd.Elements("Pattern"))
                 {
-                    foreach (XElement xl in excludeEnd.Elements("Pattern"))
+                    if (xl.Attribute("name") is XAttribute att && att.Value is string name)
                     {
-                        if (xl.Attribute("name") is XAttribute att && att.Value is string name)
-                        {
-                            patterns.Add(name);
-                        }
+                        patterns.Add(name);
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
             }
         }
         public List<LayerItem> GetLayerItems(XElement root, TreeItem parent)
         {
-            try
-            {
-                List<LayerItem> layers = new List<LayerItem>();
+            List<LayerItem> layers = new List<LayerItem>();
 
-                foreach (XElement xl in root.Elements("Pattern"))
-                {
-                    if (parent is LayerItem layParent)
-                    {
-                        if (xl.Attribute("name") is XAttribute att && att.Value is string name)
-                        {
-                            layParent.Patterns.Add(name);
-                        }
-                    }
-                }
-                foreach (XElement xl in root.Elements("Layer"))
+            foreach (XElement xl in root.Elements("Pattern"))
+            {
+                if (parent is LayerItem layParent)
                 {
                     if (xl.Attribute("name") is XAttribute att && att.Value is string name)
                     {
-                        LayerItem lay = new LayerItem(name, parent);
-                        layers.Add(lay);
-                        layers.AddRange(GetLayerItems(xl, lay));
+                        layParent.Patterns.Add(name);
                     }
                 }
-                return layers;
             }
-            catch (Exception ex)
+            foreach (XElement xl in root.Elements("Layer"))
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return new List<LayerItem>();
+                if (xl.Attribute("name") is XAttribute att && att.Value is string name)
+                {
+                    LayerItem lay = new LayerItem(name, parent);
+                    layers.Add(lay);
+                    layers.AddRange(GetLayerItems(xl, lay));
+                }
             }
+            return layers;
         }
         public void ConfigLayers(IEnumerable<TreeItem> objects, TreeItem parent)
         {
-            try
+            foreach (TreeItem it in parent.Children)
             {
-                foreach (TreeItem it in parent.Children)
+                if (it is LayerItem lay)
                 {
-                    if (it is LayerItem lay)
+                    foreach (string pat in lay.Patterns)
                     {
-                        foreach (string pat in lay.Patterns)
+                        foreach (TreeItem o in objects.Where<TreeItem>(x => Regex.IsMatch(x.Name, pat, RegexOptions.IgnoreCase)))
                         {
-                            foreach (TreeItem o in objects.Where<TreeItem>(x => Regex.IsMatch(x.Name, pat, RegexOptions.IgnoreCase)))
+                            if (o is MaxItem maxItem)
                             {
-                                if (o is MaxItem maxItem)
-                                {
-                                    maxItem.Parent = lay;
-                                    maxItem.ParentPattern = pat;
-                                }
+                                maxItem.Parent = lay;
+                                maxItem.ParentPattern = pat;
                             }
                         }
                     }
-                    ConfigLayers(objects, it);
                 }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                ConfigLayers(objects, it);
             }
         }
         public void ConfigLayerDefault(IEnumerable<TreeItem> objects, TreeItem parent)
         {
-            try
+            foreach (TreeItem it in objects.Where(x => x.Parent == null))
             {
-                foreach (TreeItem it in objects.Where(x => x.Parent == null))
-                {
-                    it.Parent = parent;
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                it.Parent = parent;
             }
         }
         public void InitUI()
         {
-            try
+            if (_defaultLayer == null)
             {
-                Tools.Format(MethodBase.GetCurrentMethod(), "");
-                if (_defaultLayer == null)
-                {
-                    _defaultLayer = new LayerItem("Other");
-                    _defaultLayer.Parent = TreeRoot;
-                }
-                AutoLoadMod(MaxSDK.GetMaxSelection(0));
+                _defaultLayer = new LayerItem("Other");
+                _defaultLayer.Parent = TreeRoot;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            AutoLoadMod(MaxSDK.GetMaxSelection(0));
         }
         public ModPanelNotification NotifyModInUI(IModifier m ,IINode node)
         {
-            try
+            if (!MaxSDK.IsClassOf(m, ClassID))
             {
-                if (!MaxSDK.IsClassOf(m, ClassID))
+                return ModPanelNotification.NotLoad;
+            }
+            else if (CurrentMod == null)
+            {
+                LoadModInUI(m, node);
+                return ModPanelNotification.InitLoad;
+            }
+            else if (MaxSDK.IsEquals(CurrentMod.Node, node))
+            {
+                if (MaxSDK.IsEquals(CurrentMod.Modifier, m))
                 {
-                    return ModPanelNotification.NotLoad;
-                }
-                else if (CurrentMod == null)
-                {
-                    LoadModInUI(m, node);
-                    return ModPanelNotification.InitLoad;
-                }
-                else if (MaxSDK.IsEquals(CurrentMod.Node, node))
-                {
-                    if (MaxSDK.IsEquals(CurrentMod.Modifier, m))
-                    {
-                        CurrentMod.RedrawUI(RedrawUIOption.Full);
-                        return ModPanelNotification.SelfLoad;
-                    }
-                    else
-                    {
-                        LoadModInUI(m, node);
-                        return ModPanelNotification.AddLoad;
-                    }
+                    CurrentMod.RedrawUI(RedrawUIOption.Full);
+                    return ModPanelNotification.SelfLoad;
                 }
                 else
                 {
-                    if (AutoLoadMod(node) is IBuboMod mod)
-                    {
-                        return ModPanelNotification.AutoLoadTrue;
-                    }
-                    return ModPanelNotification.AutoLoadFalse;
+                    LoadModInUI(m, node);
+                    return ModPanelNotification.AddLoad;
                 }
             }
-            catch (Exception ex)
+            else
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return ModPanelNotification.ExceptionLoad;
+                if (AutoLoadMod(node) is IBuboMod mod)
+                {
+                    return ModPanelNotification.AutoLoadTrue;
+                }
+                return ModPanelNotification.AutoLoadFalse;
             }
         }
         public void ClearTree()
         {
-            try
+            ClearMaxItems(TreeRoot);
+            List<TreeItem> items = new List<TreeItem>(TreeRoot.Children);
+            foreach (TreeItem it in items)
             {
-                ClearMaxItems(TreeRoot);
-                List<TreeItem> items = new List<TreeItem>(TreeRoot.Children);
-                foreach (TreeItem it in items)
+                if (it is LayerItem layer && it != _defaultLayer)
                 {
-                    if (it is LayerItem layer && it != _defaultLayer)
-                    {
-                        TreeRoot.Children.Remove(it);
-                    }
+                    TreeRoot.Children.Remove(it);
                 }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
             }
         }
         public void ClearMaxItems(TreeItem current)
         {
-            try
+            List<TreeItem> items = new List<TreeItem>(current.Children);
+            foreach (TreeItem it in items)
             {
-                List<TreeItem> items = new List<TreeItem>(current.Children);
-                foreach (TreeItem it in items)
+                ClearMaxItems(it);
+                if (it is MaxItem)
                 {
-                    ClearMaxItems(it);
-                    if (it is MaxItem )
-                    {
-                        current.Children.Remove(it);
-                    }
+                    current.Children.Remove(it);
                 }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
             }
         }
         public void ClearSelection()
         {
-            try
+            foreach (TreeItem it in TreeRoot.GetDescendents<TreeItem>().Where(x => x.IsItemSelected))
             {
-                foreach (TreeItem it in TreeRoot.GetDescendents<TreeItem>().Where(x => x.IsItemSelected))
-                {
-                    it.IsItemSelected = false;
-                }
-                SelectedItems.Clear();
+                it.IsItemSelected = false;
             }
-            catch(Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            SelectedItems.Clear();
         }
         public void SetSelectedItems (TreeItem it , bool select )
         {
-            try
+            it.IsItemSelected = select;
+            if (it.IsItemSelected && !SelectedItems.Exists(x => x == it))
             {
-                it.IsItemSelected = select;
-                if (it.IsItemSelected && !SelectedItems.Exists(x => x == it))
-                {
-                    SelectedItems.Add(it);
-                }
-                else if (!it.IsItemSelected)
-                {
-                    SelectedItems.Remove(it);
-                }
+                SelectedItems.Add(it);
             }
-            catch (Exception ex)
+            else if (!it.IsItemSelected)
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                SelectedItems.Remove(it);
             }
         }
         public void SetSelectedItems(List<TreeItem> items)
         {
-            try
+            ClearSelection();
+            foreach (TreeItem it in items.Where(x => x.IsVisible))
             {
-                ClearSelection();
-                foreach (TreeItem it in items.Where(x=>x.IsVisible))
-                {
-                    Tools.Format(MethodBase.GetCurrentMethod(),it.Name);
-                    SetSelectedItems(it, true);
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                Tools.Format(MethodBase.GetCurrentMethod(), it.Name);
+                SetSelectedItems(it, true);
             }
         }
         public void SetSelectedItems(TreeItem startIt, TreeItem endItem)
         {
-            try
+            List<TreeItem> items = TreeRoot.GetDescendents<TreeItem>();
+
+            int start = items.IndexOf(startIt);
+            int end = items.IndexOf(endItem);
+
+            if (start > end)
             {
-                List<TreeItem> items = TreeRoot.GetDescendents<TreeItem>();
-
-                int start = items.IndexOf(startIt);
-                int end = items.IndexOf(endItem);
-
-                if (start > end)
-                {
-                    int tmp = start;
-                    start = end;
-                    end = tmp;
-                }
-                for (int i = start; i <= end; i++)
-                {
-                    if (items[i].IsVisible)
-                    {
-                        SetSelectedItems(items[i], true);
-                    }
-                }
+                int tmp = start;
+                start = end;
+                end = tmp;
             }
-            catch (Exception ex)
+            for (int i = start; i <= end; i++)
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                if (items[i].IsVisible)
+                {
+                    SetSelectedItems(items[i], true);
+                }
             }
         }
         public void SelectItem(TreeItem it, SelectionItem options , bool selectMaxNode)
         {
-            try
+            if (options == SelectionItem.Select)
             {
-                if (options == SelectionItem.Select)
-                {
-                    ClearSelection();
-                    SetSelectedItems(it, true);
-                }
-                else if (options == SelectionItem.SelectMore)
-                {
-                    TreeItem startItem = SelectedItem;
-                    SetSelectedItems(startItem, it);
-                }
-                else if (options == SelectionItem.SelectToggle)
-                {
-                    SetSelectedItems(it, !it.IsItemSelected);
-                }
-                if (selectMaxNode && CurrentMod != null && SelectedMaxItem != null)
-                {
-                    
-                    if (Main.CurrentEngine.CurrentMod is SkinMod mod)
-                    {
-                        LinkMax.StartMute();
-                        MaxSDK.SetCurrentObject(mod.Modifier);
-                        if (!mod.IsEditEnvelopes)
-                        {
-                            mod.IsEditEnvelopes = true;
-                        }
-                    }
-                    LinkMax.StartMute();
-                    CurrentMod.SelectMaxItem(SelectedMaxItem);
-                }
+                ClearSelection();
+                SetSelectedItems(it, true);
             }
-            catch (Exception ex)
+            else if (options == SelectionItem.SelectMore)
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                TreeItem startItem = SelectedItem;
+                SetSelectedItems(startItem, it);
+            }
+            else if (options == SelectionItem.SelectToggle)
+            {
+                SetSelectedItems(it, !it.IsItemSelected);
+            }
+            if (selectMaxNode && CurrentMod != null && SelectedMaxItem != null)
+            {
+
+                if (Main.CurrentEngine.CurrentMod is SkinMod mod)
+                {
+                    LinkMax.StartMute();
+                    MaxSDK.SetCurrentObject(mod.Modifier);
+                    if (!mod.IsEditEnvelopes)
+                    {
+                        mod.IsEditEnvelopes = true;
+                    }
+                }
+                LinkMax.StartMute();
+                CurrentMod.SelectMaxItem(SelectedMaxItem);
             }
         }
         public  void SelectItem( int index, bool selectMaxNode)
         {
-            try
+            if (index > -1 && index < CurrentMod.MaxItems.Count)
             {
-                if (index > -1 && index < CurrentMod.MaxItems.Count)
-                {
-                    SelectItem(CurrentMod.MaxItems[index], SelectionItem.Select, selectMaxNode);
-                }
-            }
-            catch(Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                SelectItem(CurrentMod.MaxItems[index], SelectionItem.Select, selectMaxNode);
             }
         }
 

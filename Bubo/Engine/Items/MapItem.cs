@@ -10,6 +10,9 @@ using System.Windows.Controls;
 
 namespace Bubo
 {
+    /// <summary>
+    /// used in DataProjection list items
+    /// </summary>
     public class MapItem : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;

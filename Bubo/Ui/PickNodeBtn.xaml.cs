@@ -7,6 +7,14 @@ using System.Windows.Controls;
 
 namespace Bubo
 {
+    /// <summary>
+    /// Interaction logic for PickNodeBtn.xaml
+    /// Creat Pick button control ( like in 3dsmax pickbutton)
+    /// - on click =  pick mode enabled to select node in 3dsmax viewport.
+    /// - if object in clicked,  node is saved and pick mode is desabled
+    /// - if cancel or pick is empty, pick mode is desabled
+    /// </summary>
+    /// 
     public partial class PickNodeBtn : UserControl, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
@@ -42,45 +50,26 @@ namespace Bubo
 
         public PickNodeBtn()
         {
-            try
-            {
-                DataContext = this;
-                InitializeComponent();
-            } catch(Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            DataContext = this;
+            InitializeComponent();
         }
 
         private void OnClickBtn(object sender, RoutedEventArgs e)
         {
-            try
+            if ( !IsPickingNode )
             {
-                if ( !IsPickingNode )
+                IsPickingNode = true;
+                if (MaxSDK.PickNode() is IINode n)
                 {
-                    IsPickingNode = true;
-                    if (MaxSDK.PickNode() is IINode n)
-                    {
-                        OnNodePicked?.Invoke(this, new PickNodeArgs(n));
-                    }
-                    IsPickingNode = false;
+                    OnNodePicked?.Invoke(this, new PickNodeArgs(n));
                 }
-            } catch(Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                IsPickingNode = false;
             }
         }
 
         public void NotifyPropertyChanged(string propName)
         {
-            try
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
     }
 

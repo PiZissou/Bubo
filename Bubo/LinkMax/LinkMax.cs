@@ -11,6 +11,9 @@ using System.Timers;
 
 namespace Bubo
 {
+    /// <summary>
+    /// link 3dsmax events with WPF UI
+    /// </summary>
     public class LinkMax
     {
         static public IGlobal Global = GlobalInterface.Instance;
@@ -38,6 +41,7 @@ namespace Bubo
         static bool _suspendCalls;
         public static string NetCuiFile;
         public static string LocCuiFile;
+
         static unsafe LinkMax()
         {
             _undo = new GlobalDelegates.Delegate5(OnUndo);
@@ -45,35 +49,9 @@ namespace Bubo
             _modChanged = new GlobalDelegates.Delegate5(OnModPanelChanged);
             _modDeleted = new GlobalDelegates.Delegate5(OnModDeleted);
             _scene = new GlobalDelegates.Delegate5(OnSceneChanged);
-
             _timer = new System.Timers.Timer();
-
-            try
-            {
-#if MAX_2020
-                _mxsTest = new GlobalDelegates.Delegate18(fnTest);
-#elif MAX_2021
-                _mxsTest = new GlobalDelegates.Delegate20(fnTest);
-#endif
-            }
-            catch(Exception ex)
-            {
-
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
         }
-        public static IValue fnTest(IValue param0, int param1)
-        {
-            try
-            {
-                return param0;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
-            }
-        }
+
         public static void StartUpdate(double interval = 5000)
         {
             _timer.Elapsed += new ElapsedEventHandler(OnUpdateTimedEvent);
@@ -118,87 +96,44 @@ namespace Bubo
         }
         static void OnSceneChanged (IntPtr obj, INotifyInfo info)
         {
-            try
-            {
-                Main.Instance.DisposeScene();
-                
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            Main.Instance.DisposeScene();
         }
         static void OnSelectionChanged(IntPtr obj, INotifyInfo info)
         {
-            try
+            if (!Mute)
             {
-                if (!Mute)
-                {
-                    IINode node = MaxSDK.GetMaxSelection(0);
-                    Main.Instance.SyncSelectedNode(node);
+                IINode node = MaxSDK.GetMaxSelection(0);
+                Main.Instance.SyncSelectedNode(node);
 
-                    RegisterWhenNodeTransform(node);
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                RegisterWhenNodeTransform(node);
             }
         }
         public static void OnNodeRenameChanged()
         {
-            try
+            if (!Mute)
             {
-                if (!Mute)
-                {
-                    Main.CurrentEngine.OnNodeRenameChanged();
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                Main.CurrentEngine.OnNodeRenameChanged();
             }
         }
         public static void OnNodeTransformChanged()
         {
-            try
+            if (!Mute)
             {
-                if (!Mute)
-                {
-                    Main.Morph.CurrentMod.RedrawUI(RedrawUIOption.RefreshMorphValues);
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                Main.Morph.CurrentMod.RedrawUI(RedrawUIOption.RefreshMorphValues);
             }
         }
         static void OnModPanelChanged(IntPtr obj, INotifyInfo info)
         {
-            try
+            if (!Mute)
             {
-                if (!Mute)
-                {
-                    Main.Instance.SyncEngineFromMax(MaxSDK.GetCurrentModifier(), MaxSDK.GetMaxSelection(0));
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                Main.Instance.SyncEngineFromMax(MaxSDK.GetCurrentModifier(), MaxSDK.GetMaxSelection(0));
             }
         }
         public static void OnModDeleted(IntPtr obj, INotifyInfo info)
         {
-            try
+            if (!Mute)
             {
-                if (!Mute)
-                {
-                    Main.CurrentEngine.OnModDeleted(MaxSDK.GetCurrentModifier(), MaxSDK.GetMaxSelection(0));
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                Main.CurrentEngine.OnModDeleted(MaxSDK.GetCurrentModifier(), MaxSDK.GetMaxSelection(0));
             }
         }
         public static void OnUndo(IntPtr obj, INotifyInfo info)
@@ -207,66 +142,38 @@ namespace Bubo
         }
         public static void OnUndo()
         {
-            try
+            if (!Mute)
             {
-                if (!Mute)
-                {
-                    Main.CurrentEngine.OnNodeTabChanged();
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                Main.CurrentEngine.OnNodeTabChanged();
             }
         }
         public static void OnNodeTabChanged()
         {
-            try
+            if (!Mute)
             {
-                if (!Mute)
-                {
-                    Main.CurrentEngine.OnNodeTabChanged();
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                Main.CurrentEngine.OnNodeTabChanged();
             }
         }
         public static void OnInMod()
         {
-            try 
+            if (!Mute)
             {
-                if (!Mute)
+                StartMute();
+                Tools.Format(MethodBase.GetCurrentMethod(), "Begin");
+                InModNotification notification = Main.CurrentEngine.InMod(MaxSDK.GetCurrentModifier(), MaxSDK.GetMaxSelection(0));
+                if (Main.Skin.CurrentMod is SkinMod mod)
                 {
-                    StartMute();
-                    Tools.Format(MethodBase.GetCurrentMethod(),"Begin");
-                    InModNotification notification =  Main.CurrentEngine.InMod(MaxSDK.GetCurrentModifier(), MaxSDK.GetMaxSelection(0));
-                    if (Main.Skin.CurrentMod is SkinMod mod)
-                    {
-                        bool editEnv = mod.GetEditEnvelopes();
-                        mod.SetEditEnvelopesDisplay(editEnv, editEnv);
-                        mod.DisplayHoldBones(editEnv);
-                    }
+                    bool editEnv = mod.GetEditEnvelopes();
+                    mod.SetEditEnvelopesDisplay(editEnv, editEnv);
+                    mod.DisplayHoldBones(editEnv);
                 }
-            }
-            catch( Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
             }
         }
         static void OnMaxTimeChanged(TimeChangeEventArgs e)
         {
-            try
+            if (UISettings.Instance.RefreshOnTime && Main.Instance.SelectedTab == 1)
             {
-                if (UISettings.Instance.RefreshOnTime && Main.Instance.SelectedTab == 1 )
-                {
-                    Main.Morph.OnTimeChanged();
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                Main.Morph.OnTimeChanged();
             }
         }
         static void RegisterTimeChanged()
@@ -313,42 +220,28 @@ namespace Bubo
         }
         public static void RegisterCallbacks()
         {
-            try
-            {
-                Global.RegisterNotification(_undo, null, SystemNotificationCode.SceneUndo);
-                Global.RegisterNotification(_modDeleted, null, SystemNotificationCode.PostModifierDeleted);
-                Global.RegisterNotification(_modChanged, null, SystemNotificationCode.ModpanelSelChanged);
-                Global.RegisterNotification(_selChanged, null, SystemNotificationCode.SelectionsetChanged);
-                Global.RegisterNotification(_scene, null, SystemNotificationCode.FilePostOpen);
-                Global.RegisterNotification(_scene, null, SystemNotificationCode.SystemPostNew);
-                Global.RegisterNotification(_scene, null, SystemNotificationCode.SystemPostReset);
+            Global.RegisterNotification(_undo, null, SystemNotificationCode.SceneUndo);
+            Global.RegisterNotification(_modDeleted, null, SystemNotificationCode.PostModifierDeleted);
+            Global.RegisterNotification(_modChanged, null, SystemNotificationCode.ModpanelSelChanged);
+            Global.RegisterNotification(_selChanged, null, SystemNotificationCode.SelectionsetChanged);
+            Global.RegisterNotification(_scene, null, SystemNotificationCode.FilePostOpen);
+            Global.RegisterNotification(_scene, null, SystemNotificationCode.SystemPostNew);
+            Global.RegisterNotification(_scene, null, SystemNotificationCode.SystemPostReset);
 
-                RegisterNodeEvents();
-                RegisterTimeChanged();
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            RegisterNodeEvents();
+            RegisterTimeChanged();
         }
         public static void UnregisterCallbacks()
         {
-            try
-            {
-                Global.UnRegisterNotification(_scene, null);
-                Global.UnRegisterNotification(_modDeleted, null);
-                Global.UnRegisterNotification(_modChanged, null);
-                Global.UnRegisterNotification(_selChanged, null);
-                Global.UnRegisterNotification(_undo, null);
+            Global.UnRegisterNotification(_scene, null);
+            Global.UnRegisterNotification(_modDeleted, null);
+            Global.UnRegisterNotification(_modChanged, null);
+            Global.UnRegisterNotification(_selChanged, null);
+            Global.UnRegisterNotification(_undo, null);
 
-                UnregisterNodeEvents();
-                UnregisterTimeChanged();
-                UnregisterWhenNodeTransform();
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            UnregisterNodeEvents();
+            UnregisterTimeChanged();
+            UnregisterWhenNodeTransform();
         }
     }
 }

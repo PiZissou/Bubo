@@ -8,7 +8,9 @@ using System.Windows.Media.Media3D;
 
 namespace Bubo
 {
-   
+    /// <summary>
+    /// used to store and perform operations of targetMorphs vertex positions   
+    /// </summary>
     public class ChannelData
     {
         public string Name { get; }

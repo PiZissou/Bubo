@@ -9,6 +9,14 @@ using System.Xml.Linq;
 
 namespace Bubo
 {
+    /// <summary>
+    /// store skin data for single vertex
+    /// - list of bones
+    /// - list of weights
+    /// - DualQuat value
+    /// implement operator+ 
+    /// implement operator* 
+    /// </summary>
     public class SkinVtx
     {
         public int Vtx { get; }
@@ -37,54 +45,38 @@ namespace Bubo
         }
         public SkinVtxWeights GetWeights()
         {
-            try
-            {
-                return new SkinVtxWeights( Vtx , MaxSDK.ToTabFloat(Weights.ToArray()) , MaxSDK.ToTabNode(GetBoneNodes())) ;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
-            }
+            return new SkinVtxWeights(Vtx, MaxSDK.ToTabFloat(Weights.ToArray()), MaxSDK.ToTabNode(GetBoneNodes()));
         }
         public void GetData()
         {
-            try
+            if (SkContext is IISkinContextData && Skin is IISkin)
             {
-                if (SkContext is IISkinContextData && Skin is IISkin)
-                {
-                    Bones.Clear();
-                    BonesN.Clear();
-                    Weights.Clear();
-                    WeightsData.Clear();
-                    DualQ = SkContext.GetDQBlendWeight(Vtx);
+                Bones.Clear();
+                BonesN.Clear();
+                Weights.Clear();
+                WeightsData.Clear();
+                DualQ = SkContext.GetDQBlendWeight(Vtx);
 
-                    for (int k = 0; k < SkContext.GetNumAssignedBones(Vtx); k++)
+                for (int k = 0; k < SkContext.GetNumAssignedBones(Vtx); k++)
+                {
+                    WeightItem wItem = new WeightItem
                     {
-                        WeightItem wItem = new WeightItem
-                        {
-                            Vtx = Vtx,
-                            BoneWeightId = k,
-                            BoneId = SkContext.GetAssignedBone(Vtx, k)
-                        };
-                        wItem.Bone = Skin.GetBone(wItem.BoneId);
-                        wItem.Weight = SkContext.GetBoneWeight(Vtx, k);
-                        wItem.DualQ = DualQ;
-                        if (wItem.Bone != null)
-                        {
-                            Bones.Add(wItem.Bone);
-                            BonesN.Add(wItem.Bone.Name);
-                        }
-                        Weights.Add(SkContext.GetBoneWeight(Vtx, k));
-                        WeightsData.Add(wItem);
+                        Vtx = Vtx,
+                        BoneWeightId = k,
+                        BoneId = SkContext.GetAssignedBone(Vtx, k)
+                    };
+                    wItem.Bone = Skin.GetBone(wItem.BoneId);
+                    wItem.Weight = SkContext.GetBoneWeight(Vtx, k);
+                    wItem.DualQ = DualQ;
+                    if (wItem.Bone != null)
+                    {
+                        Bones.Add(wItem.Bone);
+                        BonesN.Add(wItem.Bone.Name);
                     }
+                    Weights.Add(SkContext.GetBoneWeight(Vtx, k));
+                    WeightsData.Add(wItem);
                 }
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
-            
         }
         public void SetWeightsHold( IINode bone , float val , bool addWeight)
         {
@@ -161,33 +153,26 @@ namespace Bubo
         }
         public static SkinVtx operator +(SkinVtx a, SkinVtx b)
         {
-            try
-            {
-                SkinVtx r = new SkinVtx(a.Vtx, a.BonesN, a.Weights, a.DualQ);
+            SkinVtx r = new SkinVtx(a.Vtx, a.BonesN, a.Weights, a.DualQ);
 
-                for (int i = 0; i < b.Weights.Count; i++)
+            for (int i = 0; i < b.Weights.Count; i++)
+            {
+                string bName = b.BonesN[i];
+                float bWeight = b.Weights[i];
+
+                int rId = r.BonesN.IndexOf(bName);
+                if (rId >= 0)
                 {
-                    string bName = b.BonesN[i];
-                    float bWeight = b.Weights[i];
-
-                    int rId = r.BonesN.IndexOf(bName);
-                    if (rId >= 0)
-                    {
-                        r.Weights[rId] += bWeight;
-                    }
-                    else
-                    {
-                        r.BonesN.Add(bName);
-                        r.Weights.Add(bWeight);
-                    }               
+                    r.Weights[rId] += bWeight;
                 }
-                r.DualQ += b.DualQ;
-                return r;
-            } catch(Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
+                else
+                {
+                    r.BonesN.Add(bName);
+                    r.Weights.Add(bWeight);
+                }
             }
+            r.DualQ += b.DualQ;
+            return r;
         }
         public static SkinVtx operator *(SkinVtx a, float val)
         {
@@ -203,41 +188,33 @@ namespace Bubo
         }
         public List<int> GetIndices(List<string> boneList)
         {
-            try
-            {
-                List<int> indices = new List<int>();
-                List<int> badIndices = new List<int>();
+            List<int> indices = new List<int>();
+            List<int> badIndices = new List<int>();
 
-                for (int i = 0; i < indices.Count(); i++)
+            for (int i = 0; i < indices.Count(); i++)
+            {
+                indices.Add(boneList.IndexOf(BonesN[i]));
+                if (indices[i] == -1)
                 {
-                    indices.Add(boneList.IndexOf(BonesN[i]));
-                    if (indices[i] == -1)
-                    {
-                        badIndices.Add(i);
-                    }
-                }
-                if (badIndices.Count == 0)
-                {
-                    return indices;
-                }
-                else if (badIndices.Count == indices.Count)
-                {
-                    return null;
-                }
-                else
-                {
-                    int v = indices.Find(x => x != -1);
-                    foreach (int index in badIndices)
-                    {
-                        indices[index] = v;
-                    }
-                    return indices;
+                    badIndices.Add(i);
                 }
             }
-            catch (Exception ex)
+            if (badIndices.Count == 0)
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                return indices;
+            }
+            else if (badIndices.Count == indices.Count)
+            {
                 return null;
+            }
+            else
+            {
+                int v = indices.Find(x => x != -1);
+                foreach (int index in badIndices)
+                {
+                    indices[index] = v;
+                }
+                return indices;
             }
         }
         public List<IINode> GetBoneNodes()

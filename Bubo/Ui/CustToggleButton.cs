@@ -4,6 +4,11 @@ using System.Windows.Media;
 
 namespace Bubo
 {
+    /// <summary>
+    /// Interaction logic for CustToggleButton.xaml
+    /// Custom ToggleButton control 
+    /// </summary>
+    /// 
     public class CustToggleButton : ToggleButton
     {
         public Brush ToggledColor

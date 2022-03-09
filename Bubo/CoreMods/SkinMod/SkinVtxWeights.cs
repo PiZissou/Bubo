@@ -7,6 +7,11 @@ using System.Threading.Tasks;
 
 namespace Bubo
 {
+    /// <summary>
+    /// store skin data for single vertex 
+    /// - list of bones
+    /// - list of weights
+    /// </summary>
     public class SkinVtxWeights
     {
         public int Vtx { get; }

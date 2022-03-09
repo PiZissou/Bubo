@@ -10,6 +10,10 @@ using System.Threading.Tasks;
 
 namespace Bubo
 {
+    /// <summary>
+    /// implement IBuboMod
+    /// used to store 3dsmax morpher modifier and perform specialized methods
+    /// </summary>
     public partial class MorphMod : IBuboMod
     {
         public IModifier Modifier { get; }
@@ -190,28 +194,12 @@ namespace Bubo
         }
         public bool DeleteChannel(IEnumerable<int> indices)
         {
-            try
-            {
-                DeleteChannels(Modifier, indices);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            DeleteChannels(Modifier, indices);
+            return true;
         }
         public int[] GetValidChannels()
         {
-            try
-            {
-                return GetValidChannels(Modifier);
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return new int[] { };
-            }
+            return GetValidChannels(Modifier);
         }
         public void SetDefaultController()
         {
@@ -221,124 +209,53 @@ namespace Bubo
         }
         public void SetActiveChannels( bool onOff)
         {
-            try
+            foreach (MaxItem item in MaxItemSel)
             {
-                foreach (MaxItem item in MaxItemSel)
-                {
-                    (item as MorphItem).IsActive = onOff;
-                }
-                RedrawUI(RedrawUIOption.Full);
-                SelectMaxItem(SelectedItem);
+                (item as MorphItem).IsActive = onOff;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-
-            }
+            RedrawUI(RedrawUIOption.Full);
+            SelectMaxItem(SelectedItem);
         }
         public void SetValueChannels( float val)
         {
-            try
+            foreach (MaxItem item in MaxItemSel)
             {
-                foreach (MaxItem item in MaxItemSel )
-                {
-                    (item as MorphItem).Value = val;
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                (item as MorphItem).Value = val;
             }
         }
         public float GetLimit( Spinner spin , int index )
         {
-            try
-            {
-                return ExecuteJob(string.Format("{0} mph {1}", (spin == Spinner.Min)? "WM3_MC_GetLimitMIN" : "WM3_MC_GetLimitMAX", index + 1)).F;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return 0.0f;
-            }
+            return ExecuteJob(string.Format("{0} mph {1}", (spin == Spinner.Min) ? "WM3_MC_GetLimitMIN" : "WM3_MC_GetLimitMAX", index + 1)).F;
         }
         public bool SetLimit(Spinner spin , int index , float val )
         {
-            try
-            {
-                return ExecuteJob(string.Format("{0} mph {1}", (spin == Spinner.Min) ? "WM3_MC_GetLimitMIN" : "WM3_MC_GetLimitMAX", index + 1, val.ToString("0.0000"))).B;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            return ExecuteJob(string.Format("{0} mph {1}", (spin == Spinner.Min) ? "WM3_MC_GetLimitMIN" : "WM3_MC_GetLimitMAX", index + 1, val.ToString("0.0000"))).B;
         }
         public string GetName(int index)
         {
-            try
-            {
-                return ExecuteJob(string.Format("WM3_MC_GetName mph {0}", index + 1)).S;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return "";
-            }
+            return ExecuteJob(string.Format("WM3_MC_GetName mph {0}", index + 1)).S;
         }
         public bool SetName(int index, string name)
         {
-            try
+            Tools.Format(MethodBase.GetCurrentMethod(), index.ToString());
+            if (ExecuteJob(string.Format("WM3_MC_SetName {0}  {1} \"{2}\"", MxsModifier, index + 1, name)).B)
             {
-                Tools.Format(MethodBase.GetCurrentMethod(), index.ToString());
-                if( ExecuteJob(string.Format("WM3_MC_SetName {0}  {1} \"{2}\"", MxsModifier , index + 1, name)).B)
-                {
-                    SelectMaxItem(SelectedItem);
-                    return true;
-                }
-                return false;
+                SelectMaxItem(SelectedItem);
+                return true;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            return false;
         }
         public bool SetChannelSel(int index)
         {
-            try
-            {
-                return ExecuteJob(string.Format("MorphJob.SetChannelSel mph {0}", index + 1)).B;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            return ExecuteJob(string.Format("MorphJob.SetChannelSel mph {0}", index + 1)).B;
         }
         public bool SetChannelPos(int index)
         {
-            try
-            {
-                return ExecuteJob(string.Format("MorphJob.SetChannelpos mph {0}", index + 1)).B;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            return ExecuteJob(string.Format("MorphJob.SetChannelpos mph {0}", index + 1)).B;
         }
         public int GetFreeChannel()
         {
-            try
-            {
-                return ExecuteJob("MorphJob.GetFreeChannel mph").I - 1;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return 0;
-            }
+            return ExecuteJob("MorphJob.GetFreeChannel mph").I - 1;
         }
         public bool AddChannel(IINode target)
         {
@@ -346,30 +263,13 @@ namespace Bubo
         }
         public bool AddChannels(List<IINode> targets)
         {
-            try
-            {
-                MaxSDK.ToMaxScript(targets, "targets");
-                return ExecuteJob(string.Format("MorphJob.AddChannels mph targets")).B;
-
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            MaxSDK.ToMaxScript(targets, "targets");
+            return ExecuteJob(string.Format("MorphJob.AddChannels mph targets")).B;
         }
         public bool ReplaceFromSel()
         {
-            try
-            { 
-                ExecuteJob(string.Format("MorphJob.ReplaceFromNodes mph (selection as array)"));
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            ExecuteJob(string.Format("MorphJob.ReplaceFromNodes mph (selection as array)"));
+            return true;
         }
         public IFPValue ExecuteJob(string mxs)
         {
@@ -379,29 +279,13 @@ namespace Bubo
         }
         public bool Compact()
         {
-            try
-            {
-                ExecuteJob("MorphJob.Compact  mph");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            ExecuteJob("MorphJob.Compact  mph");
+            return true;
         }
         public bool RemoveUnusedChannels(float val)
         {
-            try
-            {
-                ExecuteJob(string.Format("MorphJob.RemoveUnusedChannels  mph  mphNode {0}", val.ToString("0.0000")));
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            ExecuteJob(string.Format("MorphJob.RemoveUnusedChannels  mph  mphNode {0}", val.ToString("0.0000")));
+            return true;
         }
         public void ShowChannelController(List<int> indices)
         {
@@ -420,37 +304,20 @@ namespace Bubo
         }
         public bool Extract(List<int> indices)
         {
-            try
-            {
-                MaxSDK.ToMaxScript(indices, "indices",true);
-                ExecuteJob("MorphJob.ExtractMorph  mph  mphNode indices \"ExtractMorph\"");
-                RedrawUI(RedrawUIOption.Full);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            MaxSDK.ToMaxScript(indices, "indices", true);
+            ExecuteJob("MorphJob.ExtractMorph  mph  mphNode indices \"ExtractMorph\"");
+            RedrawUI(RedrawUIOption.Full);
+            return true;
         }
         public bool Offset(List<int> indices , IINode destNode )
         {
-            try
+            if (indices.Count > 0 && destNode != null && !MaxSDK.IsEquals(destNode, Node))
             {
-                if (indices.Count > 0 && destNode != null && !MaxSDK.IsEquals( destNode , Node))
-                {
-                   // LinkMax.StartMute(1000);
-                    MaxSDK.ToMaxScript(indices, "indices", true);
-                    MaxSDK.ToMaxScript(destNode, "destNode");
-                    ExecuteJob("MorphJob.OffsetMorph  mph  mphNode destNode indices \"OffsetMorph\"");
-                }
-                return true;
+                MaxSDK.ToMaxScript(indices, "indices", true);
+                MaxSDK.ToMaxScript(destNode, "destNode");
+                ExecuteJob("MorphJob.OffsetMorph  mph  mphNode destNode indices \"OffsetMorph\"");
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            return true;
         }
         public IModifier WrapByMorphEngine (IEnumerable<int> indices, IINode destNode)
         {
@@ -468,132 +335,72 @@ namespace Bubo
         }
         public static IModifier Wrap( IModifier sourceMph, IINode SourceNode, IEnumerable<int> indices, IINode destNode, bool createSkwIfNotExists)
         {
-            try
+            if (indices.Count() > 0 && destNode != null && !MaxSDK.IsEquals(destNode, SourceNode))
             {
-                if (indices.Count() > 0 && destNode != null && !MaxSDK.IsEquals(destNode, SourceNode))
-                {
-                   // LinkMax.StartMute(1000);
-                    MaxSDK.ToMaxScript(indices, "indices", true);
-                    MaxSDK.ToMaxScript(sourceMph, "mph");
-                    MaxSDK.ToMaxScript(SourceNode, "mphNode");
-                    MaxSDK.ToMaxScript(destNode, "wrappedNode");
-                    return MaxSDK.ExecuteMxs(string.Format("MorphJob.WrappedMorph  mph  mphNode wrappedNode indices \"WrappedMorph\" createSkwIfNotExists:{0}", createSkwIfNotExists)).R as IModifier;
-                }
-                return null;
+                MaxSDK.ToMaxScript(indices, "indices", true);
+                MaxSDK.ToMaxScript(sourceMph, "mph");
+                MaxSDK.ToMaxScript(SourceNode, "mphNode");
+                MaxSDK.ToMaxScript(destNode, "wrappedNode");
+                return MaxSDK.ExecuteMxs(string.Format("MorphJob.WrappedMorph  mph  mphNode wrappedNode indices \"WrappedMorph\" createSkwIfNotExists:{0}", createSkwIfNotExists)).R as IModifier;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
-            }
+            return null;
         }
 
         public bool Collapse(List<int> indices )
         {
-            try
+            if (indices.Count > 0)
             {
-                if (indices.Count > 0 )
-                {
-                    LinkMax.StartMute(500);
-                    MaxSDK.ToMaxScript(indices, "indices", true);
-                    ExecuteJob("MorphJob.CollapseMorph  mph  mphNode indices");
-                }
-                return true;
+                LinkMax.StartMute(500);
+                MaxSDK.ToMaxScript(indices, "indices", true);
+                ExecuteJob("MorphJob.CollapseMorph  mph  mphNode indices");
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            return true;
         }
         public List<int> GetSideIndices( string side , List<int> indices )
         {
-            try
-            {
-                return indices.Where(index => MaxItems.Find(item => item.MaxIndex == index) is MorphItem x &&  Regex.IsMatch(x.Name, string.Format("^{0}[0-9]?_", side))).Select(index => index).ToList();
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return new List<int>();
-            }
+            return indices.Where(index => MaxItems.Find(item => item.MaxIndex == index) is MorphItem x && Regex.IsMatch(x.Name, string.Format("^{0}[0-9]?_", side))).Select(index => index).ToList();
         }
         public void MirrorChannels(string side, List<int> indices)
         {
-            try
+            List<int> sideIndices = GetSideIndices(side, indices);
+            if (indices.Count > 0)
             {
-                List<int> sideIndices = GetSideIndices(side,indices);
-                if (indices.Count > 0)
-                {
-                    MaxSDK.ToMaxScript(sideIndices, "sideIndices", true);
-                    MaxSDK.ExecuteMxs(string.Format("MorphJob.MirrorMorph {0} {1} {2} \"{3}\" \"{4}\" ", MxsModifier, MxsNode, "sideIndices", side , "MirrorMorph"));
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                MaxSDK.ToMaxScript(sideIndices, "sideIndices", true);
+                MaxSDK.ExecuteMxs(string.Format("MorphJob.MirrorMorph {0} {1} {2} \"{3}\" \"{4}\" ", MxsModifier, MxsNode, "sideIndices", side, "MirrorMorph"));
             }
         }
         public void CurrentToMaxDelta(List<int> indices , float percent )
         {
-            try
+            if (indices.Count > 0)
             {
-                if (indices.Count > 0)
-                {
-                    float delta = 100 / percent;
-                    MorphMod.CurrentToMaxDelta(Modifier, Node, indices.ToArray(), delta);
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                float delta = 100 / percent;
+                MorphMod.CurrentToMaxDelta(Modifier, Node, indices.ToArray(), delta);
             }
         }
 
         public void ResetVertexSel()
         {
-            try
-            {
-                TransfertVertexPos(Node, MaxSDK.GetMaxSelection(0));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            TransfertVertexPos(Node, MaxSDK.GetMaxSelection(0));
         }
 
         public void SaveXml()
         {
-            try
+            if (MaxSDK.GetSaveFileName(caption: "BuboMorphSave", types: "Xml files(*.xml)|*.xml", historyCategory: "BuboMorphDirectories") is string filePath)
             {
-                if (MaxSDK.GetSaveFileName(caption:"BuboMorphSave", types:"Xml files(*.xml)|*.xml", historyCategory:"BuboMorphDirectories") is string filePath)
-                {
-                    MaxSDK.ToMaxScript(Modifier, "mph");
-                    MaxSDK.ToMaxScript(filePath, "xmlFile");
-                    MaxSDK.ExecuteMxs("Forge.SaveAnimatableReferences #(gethandlebyanim mph) xmlFile true true");
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                MaxSDK.ToMaxScript(Modifier, "mph");
+                MaxSDK.ToMaxScript(filePath, "xmlFile");
+                MaxSDK.ExecuteMxs("Forge.SaveAnimatableReferences #(gethandlebyanim mph) xmlFile true true");
             }
         }
 
         public void LoadXml(string replaceName, bool withScript)
         {
-            try
+            if (MaxSDK.GetOpenFileName(caption: "BuboMorphSave", types: "Xml files(*.xml)|*.xml", historyCategory: "BuboMorphDirectories") is string filePath)
             {
-                if (MaxSDK.GetOpenFileName(caption: "BuboMorphSave", types: "Xml files(*.xml)|*.xml", historyCategory: "BuboMorphDirectories") is string filePath)
-                {
-                    MaxSDK.ToMaxScript(Modifier, "mph");
-                    MaxSDK.ToMaxScript(filePath, "xmlFile");
-                    MaxSDK.ToMaxScript(replaceName, "replaceName");
-                    MaxSDK.ExecuteMxs(string.Format("Forge.LoadAnimatableReferences xmlFile #(gethandlebyanim mph) replaceName {0}", withScript));
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                MaxSDK.ToMaxScript(Modifier, "mph");
+                MaxSDK.ToMaxScript(filePath, "xmlFile");
+                MaxSDK.ToMaxScript(replaceName, "replaceName");
+                MaxSDK.ExecuteMxs(string.Format("Forge.LoadAnimatableReferences xmlFile #(gethandlebyanim mph) replaceName {0}", withScript));
             }
         }
     }

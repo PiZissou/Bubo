@@ -10,6 +10,9 @@ using System.Xml.Linq;
 
 namespace Bubo
 {
+    /// <summary>
+    /// manage save/load menu settings
+    /// </summary>
     public class UISettings : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
@@ -99,75 +102,54 @@ namespace Bubo
 
         public void SaveSettings()
         {
-            try
+
+            string folderPath = Path.GetDirectoryName(SettingsPath);
+            if (File.Exists(SettingsPath) || (Directory.Exists(Path.GetPathRoot(folderPath)) && Directory.CreateDirectory(folderPath) != null))
             {
-                string folderPath = Path.GetDirectoryName(SettingsPath);
-                if (File.Exists(SettingsPath) || (Directory.Exists(Path.GetPathRoot(folderPath)) && Directory.CreateDirectory(folderPath) != null))
+                XDocument docX = new XDocument();
+                XElement settingsX = new XElement("Settings");
+                foreach (PropertyInfo setting in GetType().GetProperties().Where(x => !_settingsType.Contains(x.PropertyType) && !x.GetAccessors()[0].IsStatic))
                 {
-                    XDocument docX = new XDocument();
-                    XElement settingsX = new XElement("Settings");
-                    foreach (PropertyInfo setting in GetType().GetProperties().Where(x => !_settingsType.Contains(x.PropertyType) && !x.GetAccessors()[0].IsStatic))
+                    if (!_notSaveSettings.Contains(setting.Name))
                     {
-                        if (!_notSaveSettings.Contains(setting.Name))
-                        {
-                            XElement settingX = new XElement("Setting");
-                            settingX.Add(new XAttribute(setting.Name, setting.GetValue(this)));
-                            settingsX.Add(settingX);
-                        }
+                        XElement settingX = new XElement("Setting");
+                        settingX.Add(new XAttribute(setting.Name, setting.GetValue(this)));
+                        settingsX.Add(settingX);
                     }
-                    docX.Add(settingsX);
-                    docX.Save(SettingsPath);
                 }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                docX.Add(settingsX);
+                docX.Save(SettingsPath);
             }
         }
 
         public void LoadSettings()
         {
-            try
+            if (File.Exists(SettingsPath) && Path.GetExtension(SettingsPath) == ".xml")
             {
-                if (File.Exists(SettingsPath) && Path.GetExtension(SettingsPath) == ".xml")
+                XElement settingsX = XElement.Load(SettingsPath);
+                IEnumerable<PropertyInfo> properties = GetType().GetProperties().Where(x => !_settingsType.Contains(x.PropertyType) && !x.GetAccessors()[0].IsStatic);
+                foreach (XElement settingX in settingsX.Elements("Setting"))
                 {
-                    XElement settingsX = XElement.Load(SettingsPath);
-                    IEnumerable<PropertyInfo> properties = GetType().GetProperties().Where(x => !_settingsType.Contains(x.PropertyType) && !x.GetAccessors()[0].IsStatic);
-                    foreach (XElement settingX in settingsX.Elements("Setting"))
+                    if (settingX.FirstAttribute is XAttribute attribute)
                     {
-                        if (settingX.FirstAttribute is XAttribute attribute)
+                        string settingName = attribute.Name.ToString();
+                        string settingValue = attribute.Value;
+                        if (properties.FirstOrDefault(x => x.Name == settingName) is PropertyInfo info)
                         {
-                            string settingName = attribute.Name.ToString();
-                            string settingValue = attribute.Value;
-                            if (properties.FirstOrDefault(x => x.Name == settingName) is PropertyInfo info)
+                            if (TypeDescriptor.GetConverter(info.PropertyType).ConvertFromString(settingValue) is object o)
                             {
-                                if (TypeDescriptor.GetConverter(info.PropertyType).ConvertFromString(settingValue) is object o)
-                                {
-                                    info.SetValue(this, o);
-                                }
+                                info.SetValue(this, o);
                             }
                         }
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
         }
-
 
         public void NotifyPropertyChanged(String propName)
         {
-            try
-            {
-                SaveSettings();
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            SaveSettings();
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
     }
 }

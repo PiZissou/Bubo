@@ -11,19 +11,15 @@ using System.Threading.Tasks;
 
 namespace Bubo
 {
+    /// <summary>
+    /// manage ProjectionData  actions 
+    /// </summary>
     public class ProjectDataEngine : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
         public void NotifyPropertyChanged(string propName)
         {
-            try
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-            }
-            catch (Exception ex)
-            {
-                Tools.Print("NotifyPropertyChangedException : " + ex.Message, DebugLevel.EXCEPTION);
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
 
         bool _isDetected;
@@ -161,29 +157,20 @@ namespace Bubo
         }
         public bool LoadMapChannels(IINode node)
         {
-            try
-            {
-                RefNode = node;
-                IsDetected = true;
-                MapChannels.Clear();
+            RefNode = node;
+            IsDetected = true;
+            MapChannels.Clear();
 
-                foreach (int i in MaxSDK.GetMapChannels(RefNode))
-                {
-                    MapChannels.Add(new MapItem(i.ToString(), RefNode, i, true));
-                }
-                if (MapChannels.Count > 0 && MapChannels[0].Channel == 0)
-                {
-                    MapChannels[0].Name = "vertex Color";
-                }
-                
-                return true;
-            }
-            catch (Exception ex)
+            foreach (int i in MaxSDK.GetMapChannels(RefNode))
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                IsDetected = false;
-                return false;
+                MapChannels.Add(new MapItem(i.ToString(), RefNode, i, true));
             }
+            if (MapChannels.Count > 0 && MapChannels[0].Channel == 0)
+            {
+                MapChannels[0].Name = "vertex Color";
+            }
+
+            return true;
         }
         public void DoProcess()
         {
@@ -218,76 +205,55 @@ namespace Bubo
         }
         static public void DoProcessMorph(IINode refNode, IINode nToSetup, bool isUnusedTargets, bool isScript, bool createSkwIfNotExists, string[] channelNames = null)
         {
-            try
-            {
-                List<IModifier> morphs = MaxSDK.GetModifiers(refNode).Where(x => MaxSDK.IsMorpher(x)).Select(x => x).ToList();
-                morphs.Reverse();
+            List<IModifier> morphs = MaxSDK.GetModifiers(refNode).Where(x => MaxSDK.IsMorpher(x)).Select(x => x).ToList();
+            morphs.Reverse();
 
-                foreach (IModifier refM in morphs)
+            foreach (IModifier refM in morphs)
+            {
+                if (MorphMod.WrapByProjectEngine(refM, refNode, nToSetup, createSkwIfNotExists, channelNames) is IModifier mph)
                 {
-                    if (MorphMod.WrapByProjectEngine(refM, refNode, nToSetup, createSkwIfNotExists, channelNames) is IModifier mph)
+                    MorphMod mod = new MorphMod(mph, nToSetup);
+                    if (isUnusedTargets)
                     {
-                        MorphMod mod = new MorphMod(mph, nToSetup);
-                        if (isUnusedTargets)
-                        {
-                            mod.RemoveUnusedChannels(0.001f);
-                        }
-                        if (!isScript) 
-                        {
-                            mod.SetDefaultController();
-                        }
+                        mod.RemoveUnusedChannels(0.001f);
+                    }
+                    if (!isScript)
+                    {
+                        mod.SetDefaultController();
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
             }
         }
         static public void DoProcessSkin(IINode refNode, IINode nToSetup, bool isUnusedBones, bool isDualQuat, List<int> mappedIndices)
         {
-            try
-            {
-                List<IModifier> skins = MaxSDK.GetModifiers(refNode).Where(x => MaxSDK.IsSkin(x)).Select(x=>x).ToList();
-                skins.Reverse();
+            List<IModifier> skins = MaxSDK.GetModifiers(refNode).Where(x => MaxSDK.IsSkin(x)).Select(x => x).ToList();
+            skins.Reverse();
 
-                foreach (IModifier refM in skins)
+            foreach (IModifier refM in skins)
+            {
+                if (SkinMod.WrapToSkin(refM, refNode, nToSetup) is IModifier sk)
                 {
-                    if (SkinMod.WrapToSkin(refM, refNode, nToSetup) is IModifier sk)
+                    SkinMod mod = new SkinMod(sk, nToSetup);
+                    if (isUnusedBones)
                     {
-                        SkinMod mod = new SkinMod(sk, nToSetup);
-                        if (isUnusedBones)
-                        {
-                            mod.RemoveUnusedBones();
-                        }
-                        if (isDualQuat)
-                        {
-                            SkinMod.ProjectDualQuat(refM, mod.Modifier, mappedIndices);
-                        }
+                        mod.RemoveUnusedBones();
+                    }
+                    if (isDualQuat)
+                    {
+                        SkinMod.ProjectDualQuat(refM, mod.Modifier, mappedIndices);
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
             }
         }
         static public void DoProcessMapChannels(IINode refNode, IINode nToSetup, int[] mapChannels , List<int> mappedIndices)
         {
-            try
+            if (mapChannels.Count() > 0)
             {
-                if (mapChannels.Count() > 0)
-                {
-                    MaxSDK.ToMaxScript(mapChannels, "mapChannels", false);
-                    MaxSDK.ToMaxScript(mappedIndices, "mappedIndices", true);
-                    MaxSDK.ToMaxScript(refNode, "refNodeProj");
-                    MaxSDK.ToMaxScript(nToSetup, "targetNode");
-                    MaxSDK.ExecuteMxs("ProjectionJob.ProjectMapChannels  refNodeProj targetNode mapChannels mappedIndices false");
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                MaxSDK.ToMaxScript(mapChannels, "mapChannels", false);
+                MaxSDK.ToMaxScript(mappedIndices, "mappedIndices", true);
+                MaxSDK.ToMaxScript(refNode, "refNodeProj");
+                MaxSDK.ToMaxScript(nToSetup, "targetNode");
+                MaxSDK.ExecuteMxs("ProjectionJob.ProjectMapChannels  refNodeProj targetNode mapChannels mappedIndices false");
             }
         }
         public void DisplayVertexColor( bool onOff )

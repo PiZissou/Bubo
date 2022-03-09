@@ -19,7 +19,11 @@ namespace Bubo
 {
     /// <summary>
     /// Interaction logic for SpinnerControl.xaml
+    /// Ui Control 
+    /// - manipulate double entry value
+    /// - value can be set by text entry or by buttons increment / decrement
     /// </summary>
+    /// 
     public partial class SpinnerControl : UserControl, INotifyPropertyChanged
     {
         private bool _isDragging;
@@ -210,150 +214,146 @@ namespace Bubo
 
         public void NotifyPropertyChanged(String propName = null)
         {
-            try
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
 
         private void OnPreviewMouseDownPlus(object sender, MouseButtonEventArgs e)
         {
-            try
+            if (e.ChangedButton == MouseButton.Left)
             {
-                if (e.ChangedButton == MouseButton.Left)
+                double newValue = SpinnerValue + Scale;
+                if (newValue <= Maximum)
                 {
-                    double newValue = SpinnerValue + Scale;
-                    if (newValue <= Maximum)
-                    {
-                        SpinnerValue = newValue;
-                    }
-                    else if (SpinnerValue != Maximum)
-                    {
-                        SpinnerValue = Maximum;
-                    }
-                    InitDragging(e);
-                    Cursor = Cursors.SizeNS;
-                    e.Handled = true;
+                    SpinnerValue = newValue;
                 }
-                else if (e.ChangedButton == MouseButton.Right)
+                else if (SpinnerValue != Maximum)
                 {
-                    SpinnerValue = DefaultValue;
+                    SpinnerValue = Maximum;
                 }
+                InitDragging(e);
+                Cursor = Cursors.SizeNS;
+                e.Handled = true;
             }
-            catch (Exception ex)
+            else if (e.ChangedButton == MouseButton.Right)
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                SpinnerValue = DefaultValue;
             }
         }
 
         private void InitDragging(MouseButtonEventArgs e)
         {
-            try
-            {
-                _mousePos = e.GetPosition(mgrid);
-                _isDragging = true;
-                mgrid.CaptureMouse();
-                Cursor = Cursors.SizeNS;
-            } catch(Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            _mousePos = e.GetPosition(mgrid);
+            _isDragging = true;
+            mgrid.CaptureMouse();
+            Cursor = Cursors.SizeNS;
         }
 
         private void StopDragging()
         {
-            try
-            {
-                _isDragging = false;
-                mgrid.ReleaseMouseCapture();
-                Cursor = Cursors.Arrow;
-            } catch(Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            _isDragging = false;
+            mgrid.ReleaseMouseCapture();
+            Cursor = Cursors.Arrow;
         }
 
         private void OnPreviewMouseDownMinus(object sender, MouseButtonEventArgs e)
         {
-            try
+            if (e.ChangedButton == MouseButton.Left)
             {
-                if (e.ChangedButton == MouseButton.Left)
+                double newValue = SpinnerValue - Scale;
+                if (newValue >= Minimum)
                 {
-                    double newValue = SpinnerValue - Scale;
-                    if (newValue >= Minimum)
-                    {
-                        SpinnerValue = newValue;
-                    }
-                    else if (SpinnerValue != Minimum)
-                    {
-                        SpinnerValue = Minimum;
-                    }
-                    InitDragging(e);
-                    Cursor = Cursors.SizeNS;
-                    e.Handled = true;
+                    SpinnerValue = newValue;
                 }
-                else if (e.ChangedButton == MouseButton.Right)
+                else if (SpinnerValue != Minimum)
                 {
-                    SpinnerValue = DefaultValue;
+                    SpinnerValue = Minimum;
                 }
+                InitDragging(e);
+                Cursor = Cursors.SizeNS;
+                e.Handled = true;
             }
-            catch (Exception ex)
+            else if (e.ChangedButton == MouseButton.Right)
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                SpinnerValue = DefaultValue;
             }
         }
 
         private void OnMouseDownGrid(object sender, MouseButtonEventArgs e)
         {
-            try
+            if (e.ChangedButton == MouseButton.Left)
             {
-
-                if (e.ChangedButton == MouseButton.Left)
-                {
-                    _mousePos = e.GetPosition((sender as UIElement));
-                    InitDragging(e);
-                }
-
-                else if (e.ChangedButton == MouseButton.Right)
-                {
-                    SpinnerValue = DefaultValue;
-                }
-                e.Handled = true;
-            } catch(Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                _mousePos = e.GetPosition((sender as UIElement));
+                InitDragging(e);
             }
+
+            else if (e.ChangedButton == MouseButton.Right)
+            {
+                SpinnerValue = DefaultValue;
+            }
+            e.Handled = true;
         }
 
         private void OnPreviewMouseUpGrid(object sender, MouseButtonEventArgs e)
         {
-            try
-            {
-                   StopDragging();                
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            StopDragging();                
         }
 
         private void OnPreviewMouseMoveGrid(object sender, MouseEventArgs e)
         {
-            try
+            if (_isDragging)
             {
-                if (_isDragging)
-                {
-                    Point newMousePos = e.GetPosition(sender as UIElement);
-                    double delta = _mousePos.Y - newMousePos.Y;
-                    delta *= Scale;
-                    _mousePos = newMousePos;
-                    double newValue = SpinnerValue + delta;
+                Point newMousePos = e.GetPosition(sender as UIElement);
+                double delta = _mousePos.Y - newMousePos.Y;
+                delta *= Scale;
+                _mousePos = newMousePos;
+                double newValue = SpinnerValue + delta;
                     
-                    if ((newValue >= Minimum || newValue < Minimum && Minimum==-9999) && (newValue <= Maximum || newValue > Maximum && Maximum == 9999))
+                if ((newValue >= Minimum || newValue < Minimum && Minimum==-9999) && (newValue <= Maximum || newValue > Maximum && Maximum == 9999))
+                {
+                    SpinnerValue = newValue;
+                }
+                else if (newValue > Maximum && SpinnerValue != Maximum)
+                {
+                    SpinnerValue = Maximum;
+                }
+                else if (newValue < Minimum && SpinnerValue != Minimum)
+                {
+                    SpinnerValue = Minimum;
+                }
+            }
+            e.Handled = true;
+        }
+
+        private void OnDoubleClickValue(object sender, MouseButtonEventArgs e)
+        {
+            if ( sender is TextBox tb)
+            {
+                ManagedServices.AppSDK.DisableAccelerators();
+                tb.IsReadOnly = false;
+                tb.SelectAll();
+                tb.Focus();
+                tb.Cursor = Cursors.IBeam;
+            }
+        }
+        private void OnKeyUpValueBlock(object sender, KeyEventArgs e)
+        {
+            Tools.Format(MethodBase.GetCurrentMethod(),e.Key.ToString()) ;
+            if (e.Key == Key.Enter && sender is TextBox tb)
+            {
+                Keyboard.ClearFocus();
+            }
+        }
+        private void OnKeyboardLostFocusValueBlock(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            if (sender is TextBox tb)
+            {
+                tb.Cursor = Cursors.Arrow;
+                tb.SelectionLength = 0;
+                tb.IsReadOnly = true;
+
+                if (float.TryParse(tb.Text, out float newValue))
+                {
+                    if ((newValue >= Minimum || newValue < Minimum && Minimum == -9999) && (newValue <= Maximum || newValue > Maximum && Maximum == 9999))
                     {
                         SpinnerValue = newValue;
                     }
@@ -366,78 +366,8 @@ namespace Bubo
                         SpinnerValue = Minimum;
                     }
                 }
-                e.Handled = true;
-            } catch(Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
             }
-        }
-
-        private void OnDoubleClickValue(object sender, MouseButtonEventArgs e)
-        {
-            try
-            {
-                if ( sender is TextBox tb)
-                {
-                    ManagedServices.AppSDK.DisableAccelerators();
-                    tb.IsReadOnly = false;
-                    tb.SelectAll();
-                    tb.Focus();
-                    tb.Cursor = Cursors.IBeam;
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
-}
-        private void OnKeyUpValueBlock(object sender, KeyEventArgs e)
-        {
-            try
-            {
-                Tools.Format(MethodBase.GetCurrentMethod(),e.Key.ToString()) ;
-                if (e.Key == Key.Enter && sender is TextBox tb)
-                {
-                    Keyboard.ClearFocus();
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
-        }
-        private void OnKeyboardLostFocusValueBlock(object sender, KeyboardFocusChangedEventArgs e)
-        {
-            try
-            {
-                if (sender is TextBox tb)
-                {
-                    tb.Cursor = Cursors.Arrow;
-                    tb.SelectionLength = 0;
-                    tb.IsReadOnly = true;
-
-                    if (float.TryParse(tb.Text, out float newValue))
-                    {
-                        if ((newValue >= Minimum || newValue < Minimum && Minimum == -9999) && (newValue <= Maximum || newValue > Maximum && Maximum == 9999))
-                        {
-                            SpinnerValue = newValue;
-                        }
-                        else if (newValue > Maximum && SpinnerValue != Maximum)
-                        {
-                            SpinnerValue = Maximum;
-                        }
-                        else if (newValue < Minimum && SpinnerValue != Minimum)
-                        {
-                            SpinnerValue = Minimum;
-                        }
-                    }
-                }
-                ManagedServices.AppSDK.EnableAccelerators();
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            ManagedServices.AppSDK.EnableAccelerators();
         }
 
     }

@@ -11,6 +11,10 @@ using System.Xml.Linq;
 
 namespace Bubo
 {
+    /// <summary>
+    /// inherit from BuboEngine  
+    ///  - manage skin treeview actions 
+    /// </summary>
     public class SkinEngine : BuboEngine
     {
         List<SkinVtx> _vertSel = new List<SkinVtx>();
@@ -49,37 +53,29 @@ namespace Bubo
 
         public override InModNotification InMod(IModifier m, IINode node)
         {
-            try
+            InModNotification notify;
+            if (base.InMod(m, node) == InModNotification.InMod)
             {
-                InModNotification notify;
-                if (base.InMod(m,node) == InModNotification.InMod)
+                if (CurrentSkin.Selected != _maxItemSelected)
                 {
-                    if (CurrentSkin.Selected != _maxItemSelected)
-                    {
-                        _maxItemSelected = CurrentSkin.Selected;
-                        
-                        SelectItem(CurrentSkin.Selected, false );
+                    _maxItemSelected = CurrentSkin.Selected;
 
-                        notify = InModNotification.MaxItemSel;
-                    }
-                    else 
-                    {
-                        CurrentSkin.RedrawUI(RedrawUIOption.Full);
-                        notify = InModNotification.InModRedraw;
-                    }
+                    SelectItem(CurrentSkin.Selected, false);
+
+                    notify = InModNotification.MaxItemSel;
                 }
                 else
                 {
-                    notify = InModNotification.NotMod;
+                    CurrentSkin.RedrawUI(RedrawUIOption.Full);
+                    notify = InModNotification.InModRedraw;
                 }
-                Tools.Format(MethodBase.GetCurrentMethod(), notify.ToString());
-                return notify;
             }
-            catch (Exception ex)
+            else
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return InModNotification.ExceptionInMod;
+                notify = InModNotification.NotMod;
             }
+            Tools.Format(MethodBase.GetCurrentMethod(), notify.ToString());
+            return notify;
         }
         #endregion
         public override XElement ResetConfig(XElement rootDoc)

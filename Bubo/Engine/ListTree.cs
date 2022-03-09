@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Bubo
 {
+    /// <summary>
+    /// custom List to extend tree methods
+    /// </summary>
     public class ListTree<T> : List<T>
     {
         public void RemoveTree(T t) 

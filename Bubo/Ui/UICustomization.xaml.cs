@@ -9,89 +9,65 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 
-// https://www.source-weave.com/blog/custom-wpf-window
 
 namespace Bubo
 {
+
+    /// <summary>
+    ///  Interaction logic for UICustomization.xaml
+    /// </summary>
     public partial class UICustomization
     {
         private void OnMouseDownExpanderHeader(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            try
+
+            if (Tools.VisualUpwardSearch<Expander>((sender as DependencyObject)) is Expander exp)
             {
-                if (Tools.VisualUpwardSearch<Expander>((sender as DependencyObject)) is Expander exp)
-                {
-                    exp.IsExpanded = !exp.IsExpanded;
-                }
-            } catch(Exception ex)
-            {
-                Tools.Print("UICustomizationOnMouseDownExpanderHeaderException : " + ex.Message, DebugLevel.EXCEPTION);
+                exp.IsExpanded = !exp.IsExpanded;
             }
+
         }
 
         protected void OnPreviewMouseDownExpander(object sender, MouseButtonEventArgs e)
         {
-            try
+
+            if (!(e.Source is ComboBox))
             {
-                if (!(e.Source is ComboBox))
-                {
-                    Keyboard.ClearFocus();
-                    (sender as UIElement).Focus();
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.Print("UICustomizationOnPreviewMouseDownExpanderException : " + ex.Message, DebugLevel.EXCEPTION);
+                Keyboard.ClearFocus();
+                (sender as UIElement).Focus();
             }
         }
 
         private void OnPreviewMouseDownTabHeader(object sender, MouseButtonEventArgs e)
         {
-            try
+            if (Tools.VisualUpwardSearch<TabItem>((sender as DependencyObject)) is TabItem tab && Tools.VisualUpwardSearch<Expander>((sender as DependencyObject)) is Expander exp)
             {
-                if (Tools.VisualUpwardSearch<TabItem>((sender as DependencyObject)) is TabItem tab && Tools.VisualUpwardSearch<Expander>((sender as DependencyObject)) is Expander exp)
+                if (tab.IsSelected)
                 {
-                    if (tab.IsSelected)
-                    {
-                        exp.IsExpanded = !exp.IsExpanded;
-                    }
-                    else
-                    {
-                        exp.IsExpanded = true;
-                    }
+                    exp.IsExpanded = !exp.IsExpanded;
                 }
-            }
-            catch (Exception ex)
-            {
-                Tools.Print("UICustomizationOnPreviewMouseDownTabHeaderException : " + ex.Message, DebugLevel.EXCEPTION);
+                else
+                {
+                    exp.IsExpanded = true;
+                }
             }
         }
 
         private void OnMouseDownListBox(object sender, MouseButtonEventArgs e)
         {
-            try
+
+            if (sender is ListBox lb && !(e.Source is ListBoxItem))
             {
-                if (sender is ListBox lb && !(e.Source is ListBoxItem))
-                {
-                    lb.UnselectAll();
-                }
-            } catch(Exception ex)
-            {
-                Tools.Print("UICustomizationOnMouseDownListBoxException : " + ex.Message, DebugLevel.EXCEPTION);
+                lb.UnselectAll();
             }
         }
 
         private void NumberTextBoxOnPreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            try
-            {
-                Regex regex = new Regex("[^0-9]+");
-                e.Handled = regex.IsMatch(e.Text);
-            }
-            catch (Exception ex)
-            {
-                Tools.Print("UICustomizationOnMouseDownListBoxException : " + ex.Message, DebugLevel.EXCEPTION);
-            }
+
+            Regex regex = new Regex("[^0-9]+");
+            e.Handled = regex.IsMatch(e.Text);
+            
         }
     }
 }

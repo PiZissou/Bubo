@@ -9,6 +9,10 @@ namespace Bubo
 {
     public interface IBuboMod
     {
+        /// <summary>
+        /// interface for bubo modifier
+        /// used in morphEngine and SkinEngin
+        /// </summary>
         IModifier Modifier { get; }
         IINode Node { get; }
         string MxsModifier { get; }

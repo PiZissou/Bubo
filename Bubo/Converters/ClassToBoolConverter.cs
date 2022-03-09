@@ -10,25 +10,20 @@ using System.Windows.Data;
 
 namespace Bubo
 {
+    /// <summary>
+    /// object type converted to bool
+    /// </summary>
     public class ClassToBoolConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            try
+            if (value != null && parameter is Type t)
             {
-                if (value != null && parameter is Type t)
-                {
-                    return value.GetType().Equals(t);
-                }
-                else
-                {
-                    return false;
-                }
+                return value.GetType().Equals(t);
             }
-            catch (Exception ex)
+            else
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return true;
+                return false;
             }
         }
 

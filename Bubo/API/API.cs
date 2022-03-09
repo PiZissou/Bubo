@@ -15,6 +15,10 @@ using MaxCustomControls;
 
 namespace Bubo
 {
+    /// <summary>
+    /// API used with maxscript in 3dsmax.
+    /// API used in other pojects like CharacterManager
+    /// </summary>
     public partial class API
     {
         public PolySym Sym

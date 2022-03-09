@@ -13,19 +13,15 @@ using Autodesk.Max;
 
 namespace Bubo
 {
+    /// <summary>
+    /// Base class for treeview item
+    /// </summary>
     public class TreeItem :  INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
         public void NotifyPropertyChanged(string propName)
         {
-            try
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-            }
-            catch (Exception ex)
-            {
-                Tools.Print("TreeViewItemNotifyPropertyChangedException : " + ex.Message, DebugLevel.EXCEPTION);
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
 
         bool _isVisible = true;

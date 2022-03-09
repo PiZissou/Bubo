@@ -9,6 +9,10 @@ using System.Reflection;
 
 namespace Bubo
 {
+    /// <summary>
+    /// inherit from MaxItem
+    /// used in Skin treeview items
+    /// </summary>
     public class SkinItem : MaxItem
     {
         public IINode Bone{ get; }
@@ -69,14 +73,7 @@ namespace Bubo
 
         public override void Refresh()
         {
-            try
-            {
-                Name = Bone.Name;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            Name = Bone.Name;
         }
     }
 }

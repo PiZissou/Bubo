@@ -12,6 +12,9 @@ using System.IO;
 
 namespace Bubo
 {
+    /// <summary>
+    /// used to dock buboUI userControl in 3dsmax as floating window, or docking left, docking right. 
+    /// </summary>
     public class CUI
     {
         public static ActionDock Dockable { get; set; }

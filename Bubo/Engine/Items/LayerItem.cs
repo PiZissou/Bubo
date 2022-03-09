@@ -8,6 +8,10 @@ using System.Windows.Media;
 
 namespace Bubo
 {
+    /// <summary>
+    /// inherit from TreeItem
+    ///  - all MaxItem thad match Patterns will be added as child
+    /// </summary>
     public class LayerItem : TreeItem
     {
         public List<string> Patterns { get; } = new List<string>();

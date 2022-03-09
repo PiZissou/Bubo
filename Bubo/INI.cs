@@ -6,7 +6,9 @@ using System.Linq;
 
 namespace Bubo
 {
-
+    /// <summary>
+    /// globals enums and vars
+    /// </summary>
     public enum RedrawUIOption { Full, RefreshItems, RefreshMorphValues }
     public enum SelectionItem { Select, SelectMore, SelectToggle }
     public enum ProcessingOption { Indices, All }

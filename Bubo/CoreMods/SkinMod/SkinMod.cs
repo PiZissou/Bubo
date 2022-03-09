@@ -10,19 +10,16 @@ using Autodesk.Max;
 
 namespace Bubo
 {
+    /// <summary>
+    /// implement IBuboMod
+    /// used to store 3dsmax skin modifier and perform specialized methods
+    /// </summary>
     public partial class SkinMod : SkinData , IBuboMod , INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
         public void NotifyPropertyChanged(string propName)
         {
-            try
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-            }
-            catch (Exception ex)
-            {
-                Tools.Print("NotifyPropertyChangedException : " + ex.Message, DebugLevel.EXCEPTION);
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
         public override List<SkinVtx> Vertices
         {
@@ -312,51 +309,35 @@ namespace Bubo
         }
         public SkinMod(IModifier m, IINode skinNode)
         {
-            try
+            if (m != null && MaxSDK.GetSkin(m) is IISkin sk && MaxSDK.GetSkin2(m) is IISkin2 sk2)
             {
-                if (m != null && MaxSDK.GetSkin(m) is IISkin sk && MaxSDK.GetSkin2(m) is IISkin2 sk2)
-                {
-                    Modifier = m;
-                    Node = skinNode;
-                    MaxSDK.ToMaxScript(Modifier, MxsModifier);
-                    MaxSDK.ToMaxScript(Node, MxsNode);
-                    Skin = sk;
-                    Skin2 = sk2;
-                    SkContext = sk.GetContextInterface(skinNode);
-                    SkImport = MaxSDK.GetSkinImportData(m);
+                Modifier = m;
+                Node = skinNode;
+                MaxSDK.ToMaxScript(Modifier, MxsModifier);
+                MaxSDK.ToMaxScript(Node, MxsNode);
+                Skin = sk;
+                Skin2 = sk2;
+                SkContext = sk.GetContextInterface(skinNode);
+                SkImport = MaxSDK.GetSkinImportData(m);
 
-                    for (int i = 0; i < sk.NumBones; i++)
-                    {
-                        BoneNList.Add(sk.GetBoneName(i));
-                        IINode bone = sk.GetBone(i);
-                        MaxItems.Add(new SkinItem(bone.Name, this, bone, i));
-                    }
-                    RedrawUI(RedrawUIOption.Full);
+                for (int i = 0; i < sk.NumBones; i++)
+                {
+                    BoneNList.Add(sk.GetBoneName(i));
+                    IINode bone = sk.GetBone(i);
+                    MaxItems.Add(new SkinItem(bone.Name, this, bone, i));
                 }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                RedrawUI(RedrawUIOption.Full);
             }
         }
         public ListTree<MaxItem> GetSkinItems()
         {
-            try
+            ListTree<MaxItem> items = new ListTree<MaxItem>();
+            for (int i = 0; i < Skin.NumBones; i++)
             {
-                ListTree<MaxItem> items = new ListTree<MaxItem>();
-                for (int i = 0; i < Skin.NumBones; i++)
-                {
-                    IINode bone = Skin.GetBone(i);
-                    items.Add(new SkinItem(bone.Name, this, bone, i));
-                }
-                return items;
+                IINode bone = Skin.GetBone(i);
+                items.Add(new SkinItem(bone.Name, this, bone, i));
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return new ListTree<MaxItem>();
-            }
-
+            return items;
         }
 
         public void RedrawUI(RedrawUIOption redraw)
@@ -382,16 +363,7 @@ namespace Bubo
         }
         public IINode GetBoneByID(int id )
         {
-            try
-            {
-                return MaxSDK.ExecuteMxs(string.Format("skinOps.GetBoneNode {0} {1}", MxsModifier, id + 1)).N;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
-            }
-
+            return MaxSDK.ExecuteMxs(string.Format("skinOps.GetBoneNode {0} {1}", MxsModifier, id + 1)).N;
         }
         public void RemoveBoneSel()
         {
@@ -402,271 +374,150 @@ namespace Bubo
         }
         public void SelectBoneNodes()
         {
-            try
-            {
-                LinkMax.StartMute();
-                IsEditEnvelopes = false;
-                MaxSDK.Interface.ClearNodeSelection(true);
-                MaxSDK.SetMaxSelection(MaxItemSel.Cast<SkinItem>().Select(x => x.Bone).ToList());
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            LinkMax.StartMute();
+            IsEditEnvelopes = false;
+            MaxSDK.Interface.ClearNodeSelection(true);
+            MaxSDK.SetMaxSelection(MaxItemSel.Cast<SkinItem>().Select(x => x.Bone).ToList());
         }
         public void HideBoneNodes(IEnumerable<MaxItem> maxitems, bool val)
         {
-            try
+            foreach (SkinItem skItem in maxitems)
             {
-                foreach (SkinItem skItem in maxitems)
-                {
-                    skItem.Bone.Hide(val);
-                }
-            }
-            catch ( Exception ex )
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                skItem.Bone.Hide(val);
             }
         }
         public void HideBoneNodes( bool val)
         {
-            try
-            {
-                HideBoneNodes(MaxItemSel, val);
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+
+            HideBoneNodes(MaxItemSel, val);
         }
         public bool Load( SkinData skData , bool onlySelected, int[] verticesToMix)
         {
-            try
-            {
-                List<SkinVtx> vertices = new List<SkinVtx>();
-                IBitArray bitSel = MaxSDK.Global.BitArray.Create();
-                Skin2.GetVertexSelection(Node, bitSel);
+            List<SkinVtx> vertices = new List<SkinVtx>();
+            IBitArray bitSel = MaxSDK.Global.BitArray.Create();
+            Skin2.GetVertexSelection(Node, bitSel);
 
-                if (verticesToMix != null)
+            if (verticesToMix != null)
+            {
+                bitSel.ClearAll();
+                foreach(int i in verticesToMix)
                 {
-                    bitSel.ClearAll();
-                    foreach(int i in verticesToMix)
-                    {
-                        bitSel.Set(i);
-                    }
+                    bitSel.Set(i);
                 }
-                else if (onlySelected && bitSel.AnyBitSet)
-                {
+            }
+            else if (onlySelected && bitSel.AnyBitSet)
+            {
                 
-                }
-                else
-                {
-                    bitSel.SetAll();
-                    ClearBones();
-                }
-                Tools.Format(MethodBase.GetCurrentMethod(), "Begin");
-
-                AddBones(Skin, SkImport, skData.GetBoneNodeList());
-
-                foreach (SkinVtx vtx in skData.Vertices.Where( x => bitSel[x.Vtx] == 1) )
-                {
-                    ITab<float> floatTab = MaxSDK.ToTabFloat(vtx.Weights.ToArray());
-                    ITab<IINode> nodeTab = MaxSDK.ToTabNode(vtx.GetBoneNodes());
-
-                    bool success = SkImport.AddWeights(Node, vtx.Vtx, nodeTab, floatTab);
-                    SkContext.SetDQBlendWeight(vtx.Vtx, vtx.DualQ);
-                    Tools.Format(MethodBase.GetCurrentMethod(), string.Format("success : {0} , {1}", success, vtx.ToString()), DebugLevel.ULTRAVERBOSE);
-                }
-                return true;
             }
-            catch (Exception ex)
+            else
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
+                bitSel.SetAll();
+                ClearBones();
             }
+            Tools.Format(MethodBase.GetCurrentMethod(), "Begin");
+
+            AddBones(Skin, SkImport, skData.GetBoneNodeList());
+
+            foreach (SkinVtx vtx in skData.Vertices.Where( x => bitSel[x.Vtx] == 1) )
+            {
+                ITab<float> floatTab = MaxSDK.ToTabFloat(vtx.Weights.ToArray());
+                ITab<IINode> nodeTab = MaxSDK.ToTabNode(vtx.GetBoneNodes());
+
+                bool success = SkImport.AddWeights(Node, vtx.Vtx, nodeTab, floatTab);
+                SkContext.SetDQBlendWeight(vtx.Vtx, vtx.DualQ);
+                Tools.Format(MethodBase.GetCurrentMethod(), string.Format("success : {0} , {1}", success, vtx.ToString()), DebugLevel.ULTRAVERBOSE);
+            }
+            return true;
         }
         public void SetDQWeightsSelected(float v, bool addWeight)
         {
-            try
+            if (IsEditDQ)
             {
-                if (IsEditDQ)
-                {
-                    if (addWeight)
-                        MaxSDK.ExecuteMxs(string.Format("skinJob.AddVertexDQWeightSelected {0} {1}", MxsModifier, v.ToString("0.000")));
-                    else
-                        MaxSDK.ExecuteMxs(string.Format("skinJob.SetVertexDQWeightSelected {0} {1}", MxsModifier, v.ToString("0.000")));
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                if (addWeight)
+                    MaxSDK.ExecuteMxs(string.Format("skinJob.AddVertexDQWeightSelected {0} {1}", MxsModifier, v.ToString("0.000")));
+                else
+                    MaxSDK.ExecuteMxs(string.Format("skinJob.SetVertexDQWeightSelected {0} {1}", MxsModifier, v.ToString("0.000")));
             }
         }
         public void SetWeights(IINode bone, SkinVtx[] vertices, float val, bool addWeight)
         {
-            try
+            if (!IsEditDQ )
             {
-                if (!IsEditDQ )
-                {
-                    SetWeights( Modifier , Node, bone, vertices, val, addWeight);
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                SetWeights( Modifier , Node, bone, vertices, val, addWeight);
             }
         }
         public void SetPaintMaxStr(float val)
         {
-            try
-            {
-                MaxSDK.ExecuteMxs(string.Format("thePainterInterface.maxstr = {0}", val));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            MaxSDK.ExecuteMxs(string.Format("thePainterInterface.maxstr = {0}", val));
         }
         public void SetScaleWeights(float val)
         {
-            try
-            {
-                Tools.Format(MethodBase.GetCurrentMethod(), MxsModifier);
-                MaxSDK.ExecuteMxs(string.Format("SkinJob.SetScaleWeights {0} {1}", MxsModifier, val));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            Tools.Format(MethodBase.GetCurrentMethod(), MxsModifier);
+            MaxSDK.ExecuteMxs(string.Format("SkinJob.SetScaleWeights {0} {1}", MxsModifier, val));
         }
         public void SetEditEnvelopes(bool onOff)
         {
-            try
-            {
-                LinkMax.StartMute();
-                MaxSDK.ExecuteMxs(string.Format("SkinJob.SetEditEnvelopes {0} {1} {2}", MxsModifier, MxsNode, onOff));   
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            LinkMax.StartMute();
+            MaxSDK.ExecuteMxs(string.Format("SkinJob.SetEditEnvelopes {0} {1} {2}", MxsModifier, MxsNode, onOff));   
         }
         public void SetEditEnvelopesDisplay(bool shading , bool vertexColor)
         {
-            try
-            {
-                LinkMax.StartMute();
-                MaxSDK.ExecuteMxs(string.Format("SkinJob.EditEnvelopesDisplay {0} {1} {2} {3}", MxsModifier , MxsNode , shading, vertexColor));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            LinkMax.StartMute();
+            MaxSDK.ExecuteMxs(string.Format("SkinJob.EditEnvelopesDisplay {0} {1} {2} {3}", MxsModifier , MxsNode , shading, vertexColor));
         }
         public void DisplayHoldBones(bool onOff)
         {
-            try
-            {
-                DisplayHoldBones(Modifier, onOff);
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            DisplayHoldBones(Modifier, onOff);
         }
         public void SetPaintWeight( float val, bool blendMode , bool onOff)
         {
-            try
-            {
-                LinkMax.StartMute();
-                MaxSDK.ExecuteMxs(string.Format("SkinJob.SetPaintWeights {0} {1} {2} {3}", MxsModifier, val, blendMode, onOff));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            LinkMax.StartMute();
+            MaxSDK.ExecuteMxs(string.Format("SkinJob.SetPaintWeights {0} {1} {2} {3}", MxsModifier, val, blendMode, onOff));
         }
         public void SetDisplayFaces(bool onOff)
         {
-            try
-            {
-                LinkMax.StartMute();
-                MaxSDK.ExecuteMxs(string.Format("SkinJob.SetDisplayFaces {0} {1}", MxsModifier, onOff));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            LinkMax.StartMute();
+            MaxSDK.ExecuteMxs(string.Format("SkinJob.SetDisplayFaces {0} {1}", MxsModifier, onOff));
         }
         public void SetDisplayVertices(bool onOff)
         {
-            try
-            {
-                LinkMax.StartMute();
-                MaxSDK.ExecuteMxs(string.Format("SkinJob.SetDisplayVertices {0} {1}", MxsModifier, onOff));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            LinkMax.StartMute();
+            MaxSDK.ExecuteMxs(string.Format("SkinJob.SetDisplayVertices {0} {1}", MxsModifier, onOff));
         }
         public void SetEditingDQ(bool onOff)
         {
-            try
-            {
-                LinkMax.StartMute();
-                MaxSDK.ExecuteMxs(string.Format("SkinJob.SetEditingDQ {0} {1}", MxsModifier, onOff));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            LinkMax.StartMute();
+            MaxSDK.ExecuteMxs(string.Format("SkinJob.SetEditingDQ {0} {1}", MxsModifier, onOff));
         }
         public void SetEnabledDQ(bool onOff)
         {
-            try
-            {
-                LinkMax.StartMute();
-                Skin.DQBlending = onOff;
-                MaxSDK.ExecuteMxs(string.Format("SkinJob.SetEnabledDQ {0} {1}", MxsModifier, onOff));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            LinkMax.StartMute();
+            Skin.DQBlending = onOff;
+            MaxSDK.ExecuteMxs(string.Format("SkinJob.SetEnabledDQ {0} {1}", MxsModifier, onOff));
         }
         public SkinVtx[] GetVertSel()
         {
-            try
-            {
-                List<SkinVtx> sel = new List<SkinVtx>();
-                   
-                if (!GetEditEnvelopes(Modifier))
-                {
-                    return new SkinVtx[0];
-                }
-                IBitArray bitSel = MaxSDK.Global.BitArray.Create();
-                Skin2.GetVertexSelection(Node, bitSel);
+            List<SkinVtx> sel = new List<SkinVtx>();
 
-                if (bitSel.AnyBitSet)
+            if (!GetEditEnvelopes(Modifier))
+            {
+                return new SkinVtx[0];
+            }
+            IBitArray bitSel = MaxSDK.Global.BitArray.Create();
+            Skin2.GetVertexSelection(Node, bitSel);
+
+            if (bitSel.AnyBitSet)
+            {
+                for (int i = 0; i < bitSel.Size; i++)
                 {
-                    for (int i = 0; i < bitSel.Size; i++)
+                    if (bitSel[i] == 1)
                     {
-                        if (bitSel[i] == 1)
-                        {
-                            sel.Add(new SkinVtx(i, SkContext, Skin));
-                        }
+                        sel.Add(new SkinVtx(i, SkContext, Skin));
                     }
                 }
-                _vertSel = sel.ToArray();
-                return _vertSel;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                _vertSel = new SkinVtx[0];
-                return _vertSel;
-            }
+            _vertSel = sel.ToArray();
+            return _vertSel;
         }
         public void GetWeightItems(SkinVtx lastVert)
         {
@@ -727,158 +578,74 @@ namespace Bubo
         }
         public bool NotifyEnabledDQ()
         {
-            try
-            {
-                _isEnabledDQ = Skin.DQBlending;
-                NotifyPropertyChanged(nameof(IsEnabledDQ));
-                return _isEnabledDQ;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            _isEnabledDQ = Skin.DQBlending;
+            NotifyPropertyChanged(nameof(IsEnabledDQ));
+            return _isEnabledDQ;
         }
         public bool NotifyPaintBlend()
         {
-            try
-            {
-                _isPaintBlend = MaxSDK.ExecuteMxs(string.Format("SkinJob.GetPaintMode {0} {1}", MxsModifier, true)).B;
-                NotifyPropertyChanged(nameof(IsPaintBlend));
-                return _isPaintBlend;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            _isPaintBlend = MaxSDK.ExecuteMxs(string.Format("SkinJob.GetPaintMode {0} {1}", MxsModifier, true)).B;
+            NotifyPropertyChanged(nameof(IsPaintBlend));
+            return _isPaintBlend;
         }
         public bool NotifyPaintSet()
         {
-            try
-            {
-                _isPaintSet = MaxSDK.ExecuteMxs(string.Format("SkinJob.GetPaintMode {0} {1}", MxsModifier, false)).B;
-                NotifyPropertyChanged(nameof(IsPaintSet));
-                return _isPaintSet;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            _isPaintSet = MaxSDK.ExecuteMxs(string.Format("SkinJob.GetPaintMode {0} {1}", MxsModifier, false)).B;
+            NotifyPropertyChanged(nameof(IsPaintSet));
+            return _isPaintSet;
         }
         public bool NotifyEditingDQ()
         {
-            try
-            {
-                _isEditDQ = GetEditingDQ( Modifier );
-                NotifyPropertyChanged(nameof(IsEditDQ));
-                return _isEditDQ;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            _isEditDQ = GetEditingDQ(Modifier);
+            NotifyPropertyChanged(nameof(IsEditDQ));
+            return _isEditDQ;
         }
         public bool NotifyDisplayFaces()
         {
-            try
-            {
-                _isDisplayFaces = MaxSDK.ExecuteMxs(string.Format("SkinJob.GetDisplayFaces {0}", MxsModifier)).B;
-                NotifyPropertyChanged(nameof(IsDisplayFaces));
-                return _isDisplayFaces;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            _isDisplayFaces = MaxSDK.ExecuteMxs(string.Format("SkinJob.GetDisplayFaces {0}", MxsModifier)).B;
+            NotifyPropertyChanged(nameof(IsDisplayFaces));
+            return _isDisplayFaces;
         }
         public bool NotifyDisplayVertices()
         {
-            try
-            {
-                _isDisplayVertices = MaxSDK.ExecuteMxs(string.Format("SkinJob.GetDisplayVertices {0}", MxsModifier)).B;
-                NotifyPropertyChanged(nameof(IsDisplayVertices));
-                return _isDisplayVertices;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            _isDisplayVertices = MaxSDK.ExecuteMxs(string.Format("SkinJob.GetDisplayVertices {0}", MxsModifier)).B;
+            NotifyPropertyChanged(nameof(IsDisplayVertices));
+            return _isDisplayVertices;
         }
         public void Shrink()
         {
-            try
-            {
-                MaxSDK.ExecuteMxs(string.Format("SkinJob.Shrink {0}", MxsModifier));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            MaxSDK.ExecuteMxs(string.Format("SkinJob.Shrink {0}", MxsModifier));
         }
         public void Grow()
         {
-            try
-            {
-                MaxSDK.ExecuteMxs(string.Format("SkinJob.Grow {0}", MxsModifier));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            MaxSDK.ExecuteMxs(string.Format("SkinJob.Grow {0}", MxsModifier));
         }
         public void Ring()
         {
-            try
-            {
-                MaxSDK.ExecuteMxs(string.Format("SkinJob.Ring {0}", MxsModifier));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            MaxSDK.ExecuteMxs(string.Format("SkinJob.Ring {0}", MxsModifier));
         }
         public void Loop()
         {
-            try
-            {
-                MaxSDK.ExecuteMxs(string.Format("SkinJob.Loop {0}", MxsModifier));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            MaxSDK.ExecuteMxs(string.Format("SkinJob.Loop {0}", MxsModifier));
         }
         public List<IINode> GetUnusedBones()
         {
-            try
+            List<IINode> unusedBones = new List<IINode>();
+            List<string> influences = new List<string>();
+            foreach (SkinVtx d in Vertices)
             {
-                List<IINode> unusedBones = new List<IINode>();
-                List<string> influences = new List<string>();
-                foreach (SkinVtx d in Vertices)
-                {
-                    influences.AddRange(d.BonesN.Except(influences));
-                }
+                influences.AddRange(d.BonesN.Except(influences));
+            }
 
-                for (int i = 0; i < Skin.NumBones; i++)
-                {
-                    IINode bone = Skin.GetBone(i);
-                    if (!influences.Exists(x => x == bone.Name))
-                    {
-                        unusedBones.Add(bone);
-                    }
-                }
-                return unusedBones;
-            }
-            catch (Exception ex)
+            for (int i = 0; i < Skin.NumBones; i++)
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return new List<IINode>();
+                IINode bone = Skin.GetBone(i);
+                if (!influences.Exists(x => x == bone.Name))
+                {
+                    unusedBones.Add(bone);
+                }
             }
+            return unusedBones;
         }
         public void RemoveZeroWeights(float val)
         {
@@ -887,31 +654,17 @@ namespace Bubo
         }
         public void RemoveUnusedBones()
         {
-            try
+            RemoveZeroWeights(0.001f);
+            List<IINode> unusedBones = GetUnusedBones();
+            foreach (IINode bone in unusedBones)
             {
-                RemoveZeroWeights(0.001f);
-                List<IINode> unusedBones = GetUnusedBones();
-                foreach (IINode bone in unusedBones)
-                {
-                    RemoveBone(bone);
-                    HoldBone(bone, false);
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                RemoveBone(bone);
+                HoldBone(bone, false);
             }
         }
         public void HoldToggle()
         {
-            try
-            {
-                Hold(MaxItemSel.Cast<SkinItem>(), !SelectedItem.IsHold);
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            Hold(MaxItemSel.Cast<SkinItem>(), !SelectedItem.IsHold);
         }
         public void HoldAll(bool onOff)
         {
@@ -934,16 +687,9 @@ namespace Bubo
         }
         public void SetWeights(float val)
         {
-            try
+            if (!IsEditDQ && SelectedBone != null)
             {
-                if (!IsEditDQ && SelectedBone != null)
-                {
-                    SetWeights(SelectedBone, GetVertSel() ,val, false);
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                SetWeights(SelectedBone, GetVertSel(), val, false);
             }
         }
         public int ClampNextBone ( int clamp)
@@ -953,105 +699,49 @@ namespace Bubo
         }
         public void SelectNextBone()
         {
-            try
+            List<SkinItem> skinItems = MaxItems.Cast<SkinItem>().Where(x => !x.IsHold).Select(b => b).ToList();
+            if (MaxSDK.IsEquals(skinItems[ClampNextBone(skinItems.Count)].Bone, SelectedBone))
             {
-                List<SkinItem> skinItems = MaxItems.Cast<SkinItem>().Where(x => !x.IsHold).Select(b => b).ToList();
-                if (MaxSDK.IsEquals(skinItems[ClampNextBone(skinItems.Count)].Bone, SelectedBone))
-                {
-                    _nextBone += 1;
-                }
-                SelectMaxItem(skinItems[ClampNextBone(skinItems.Count)]);
                 _nextBone += 1;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            SelectMaxItem(skinItems[ClampNextBone(skinItems.Count)]);
+            _nextBone += 1;
         }
         public void SelectBone(int index)
         {
-            try
-            {
-                MaxSDK.ExecuteMxs(string.Format("SkinJob.SelectBone {0} {1}", MxsModifier , index));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            MaxSDK.ExecuteMxs(string.Format("SkinJob.SelectBone {0} {1}", MxsModifier, index));
         }
         public void ResetPos()
         {
-            try
-            {
-                List<IINode> bones = GetBones(Modifier);
-                MaxSDK.ToMaxScript(bones, "nodes");
-                MaxSDK.ExecuteMxs(string.Format("SkinJob.ResetPos {0} nodes", MxsModifier));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            List<IINode> bones = GetBones(Modifier);
+            MaxSDK.ToMaxScript(bones, "nodes");
+            MaxSDK.ExecuteMxs(string.Format("SkinJob.ResetPos {0} nodes", MxsModifier));
         }
         public void ReplaceBones( List<IINode> sourceBones, IINode destBone)
         {
-            try
-            {
-                MaxSDK.ToMaxScript(sourceBones, "nodes");
-                MaxSDK.ToMaxScript(destBone, "dest");
-                MaxSDK.ExecuteMxs(string.Format("SkinJob.ReplaceBone {0} nodes dest" , MxsModifier));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            MaxSDK.ToMaxScript(sourceBones, "nodes");
+            MaxSDK.ToMaxScript(destBone, "dest");
+            MaxSDK.ExecuteMxs(string.Format("SkinJob.ReplaceBone {0} nodes dest", MxsModifier));
         }
         public void MirrorSkin( string side)
         {
-            try
-            {
-                MaxSDK.ExecuteMxs(string.Format("SkinJob.MirrorWeights {0} {1} \"{2}\"", MxsModifier , MxsNode ,side));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            MaxSDK.ExecuteMxs(string.Format("SkinJob.MirrorWeights {0} {1} \"{2}\"", MxsModifier, MxsNode, side));
         }
         public void RemoveBone( IINode bone)
         {
-            try
-            {
-                MaxSDK.ToMaxScript(bone, "skinBone");
-                MaxSDK.ExecuteMxs(string.Format("SkinJob.RemoveBone {0} skinBone" , MxsModifier));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            MaxSDK.ToMaxScript(bone, "skinBone");
+            MaxSDK.ExecuteMxs(string.Format("SkinJob.RemoveBone {0} skinBone", MxsModifier));
         }
         public void ClearBones()
         {
-            try
+            foreach (IINode bone in GetBones(Modifier))
             {
-                foreach (IINode bone in GetBones(Modifier))
-                {
-                    RemoveBone( bone);
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                RemoveBone(bone);
             }
         }
         public void TransfertWeightBones( float val)
         {
-            try
-            {
-                MaxSDK.ExecuteMxs(string.Format("SkinJob.TransfertWeightBones {0} {1}",MxsModifier, val));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            MaxSDK.ExecuteMxs(string.Format("SkinJob.TransfertWeightBones {0} {1}", MxsModifier, val));
         }
         public  string GetPropertyChanged()
         {

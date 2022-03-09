@@ -1,4 +1,11 @@
-﻿using Autodesk.Max;
+﻿///==========================================
+/// Title: Bubo - Setup Manager
+/// Author: Pierre Lasbgnes
+/// Date:  2012 - 2020
+///==========================================
+///
+
+using Autodesk.Max;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +16,11 @@ using System.Windows.Media.Media3D;
 namespace Bubo
 {
     public enum ViewportDisplayColor { Material, Wirecolor }
+
+    /// <summary>
+    /// @author: Pierre Lasbignes
+    /// lib of 3dsmax sdk methods
+    /// </summary>
     public class MaxSDK
     {
         static public IGlobal Global = GlobalInterface.Instance;
@@ -28,7 +40,6 @@ namespace Bubo
         static public InterfaceID I_SKINIMPORTDATA = (InterfaceID)0x00020000;
         static public IInterface_ID MESHDEFORMPW_INTERFACE = Global.Interface_ID.Create(0xDE21A34f, 0x8A43E3D2);
         static public IInterface_ID EPOLY_INTERFACE = Global.Interface_ID.Create(0x092779, 0x634020);
-        public static System.Windows.Forms.IWin32Window MaxHWND { get; } = new WindowWrapper(AppSDK.GetMaxHWND());
         public static IHold TheHold = Global.TheHold;
 
         public static int CurrentTime
@@ -51,15 +62,7 @@ namespace Bubo
         }
         public static int TimeFromTicks(int t)
         {
-            try
-            {
-                return t / Global.TicksPerFrame;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(),ex);
-                return -1;
-            }
+            return t / Global.TicksPerFrame;
         }
 
         public static void SetViewportDisplay(ViewportDisplayColor display )
@@ -141,70 +144,42 @@ namespace Bubo
         }
         static public void GetModEnabled ( IModifier m , out bool enabled, out bool inView, out bool inRender )
         {
-            try
-            {
-                enabled     = m.IsEnabled;
-                inView      = m.IsEnabledInViews;
-                inRender    = m.IsEnabledInRender;
-            }
-            catch (Exception ex)
-            {
-                enabled     = false;
-                inView      = false;
-                inRender    = false;
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            enabled = m.IsEnabled;
+            inView = m.IsEnabledInViews;
+            inRender = m.IsEnabledInRender;
         }
         static public void SetModEnabled(IModifier m,  bool enabled,  bool inView,  bool inRender)
         {
-            try
-            {
-                if (enabled)
-                    m.EnableMod();
-                else
-                    m.DisableMod();
+            if (enabled)
+                m.EnableMod();
+            else
+                m.DisableMod();
 
-                if (inView)
-                    m.EnableModInViews();
-                else
-                    m.DisableModInViews();
+            if (inView)
+                m.EnableModInViews();
+            else
+                m.DisableModInViews();
 
-                if (inRender)
-                    m.EnableModInRender();
-                else
-                    m.DisableModInRender();
-            }
-            catch (Exception ex)
-            {
-                enabled = false;
-                inView = false;
-                inRender = false;
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            if (inRender)
+                m.EnableModInRender();
+            else
+                m.DisableModInRender();
         }
         static public IModifier GetModifier(IINode nodeToSearch, IClass_ID cid, string name)
         {
-            try
+            IIDerivedObject dobj = nodeToSearch.ObjectRef as IIDerivedObject;
+            while (dobj != null)
             {
-                IIDerivedObject dobj = nodeToSearch.ObjectRef as IIDerivedObject;
-                while (dobj != null)
+                int nmods = dobj.NumModifiers;
+                for (int i = 0; i < nmods; i++)
                 {
-                    int nmods = dobj.NumModifiers;
-                    for (int i = 0; i < nmods; i++)
-                    {
-                        IModifier mod = dobj.GetModifier(i);
-                        if ((mod.ClassID.PartA == cid.PartA) && (mod.ClassID.PartB == cid.PartB) && mod.Name == name)
-                            return mod;
-                    }
-                    dobj = dobj.ObjRef as IIDerivedObject;
+                    IModifier mod = dobj.GetModifier(i);
+                    if ((mod.ClassID.PartA == cid.PartA) && (mod.ClassID.PartB == cid.PartB) && mod.Name == name)
+                        return mod;
                 }
-                return null;
+                dobj = dobj.ObjRef as IIDerivedObject;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
-            }
+            return null;
         }
         public static IEPoly GetIEPolyInterface(IINode node)
         {
@@ -225,32 +200,24 @@ namespace Bubo
         }
         public static List<int> MapVertIndices(IINode sNode , IINode dNode , bool objectTm = true)
         {
-            try
+            if (sNode is IINode && dNode is IINode)
             {
-                if (sNode is IINode && dNode is IINode )
+                List<int> indices = new List<int>();
+
+                IPoint3[] sVertices = GetPolyVerts(sNode, objectTm).ToArray();
+                IPoint3[] dVertices = GetPolyVerts(dNode, objectTm).ToArray();
+
+                if (dVertices.Count() > 0)
                 {
-                    List<int> indices = new List<int>();
-
-                    IPoint3[] sVertices = GetPolyVerts(sNode, objectTm).ToArray();
-                    IPoint3[] dVertices = GetPolyVerts(dNode, objectTm).ToArray();
-
-                    if (dVertices.Count() > 0)
+                    for (int i = 0; i < dVertices.Count(); i++)
                     {
-                        for (int i = 0; i < dVertices.Count(); i++)
-                        {
-                            indices.Add(GetClosestPoint(dVertices[i] , sVertices));
-                        }
+                        indices.Add(GetClosestPoint(dVertices[i], sVertices));
                     }
-                    return indices;
                 }
-                return new List<int>();
+                return indices;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return new List<int>();
-            }
-}
+            return new List<int>();
+        }
         public static IPoint3 ToObjectTM(IINode node , IPoint3 point)
         {
             IMatrix3 mat =node.GetObjectTM(CurrentTime, Interval);
@@ -301,278 +268,181 @@ namespace Bubo
         }
         public static List<IPoint3> GetPolyVerts(IINode node , bool objectTm = false )
         {
-            try
+            if (node is IINode && node.ObjectRef is IObject && node.ObjectRef.FindBaseObject() is IPolyObject poly)
             {
-                if (node is IINode && node.ObjectRef is IObject && node.ObjectRef.FindBaseObject() is IPolyObject poly)
+
+                List<IPoint3> vertices = new List<IPoint3>();
+                for (int i = 0; i < poly.Mesh.Numv; i++)
                 {
-                    
-                    List<IPoint3> vertices = new List<IPoint3>();
-                    for ( int i = 0; i< poly.Mesh.Numv; i++)
+                    IPoint3 p = poly.Mesh.V(i).P;
+                    if (objectTm)
                     {
-                        IPoint3 p = poly.Mesh.V(i).P;
-                        if (objectTm)
-                        {
-                            p = ToObjectTM(node, p);
-                        }
-                        vertices.Add(p);
+                        p = ToObjectTM(node, p);
                     }
-                    return vertices;
+                    vertices.Add(p);
                 }
-                return new List<IPoint3>();
+                return vertices;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return new List<IPoint3>();
-            }
+            return new List<IPoint3>();
         }
         public static List<IPoint3> GetMeshVerts(IINode node, bool ObjectTm = false)
         {
-            try
+            IMesh mesh = GetMeshFromNode(node);
+            List<IPoint3> res = new List<IPoint3>();
+            if (mesh != null)
             {
-                IMesh mesh = GetMeshFromNode(node);
-                List<IPoint3> res = new List<IPoint3>();
-                if (mesh != null)
+                for (int i = 0; i < mesh.NumVerts; i++)
                 {
-/*                    Tools.Format(MethodBase.GetCurrentMethod(), "mesh.NumVerts " + mesh.NumVerts );*/
-                    for (int i = 0; i < mesh.NumVerts; i++)
+                    IPoint3 p = mesh.GetVert(i);
+                    if (ObjectTm)
                     {
-                        IPoint3 p = mesh.GetVert(i);
-                        if (ObjectTm)
-                        {
-                            p = ToObjectTM(node, p);
-                        }
-                        res.Add(p);
+                        p = ToObjectTM(node, p);
                     }
+                    res.Add(p);
                 }
-                return res;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return new List<IPoint3>();
-            }
+            return res;
         }
         public static IMesh GetMeshFromNode(IINode node)
         {
-            try
+            IObjectState iState = node.EvalWorldState(CurrentTime, true);
+            if (iState.Obj.ConvertToType(CurrentTime, TriObjectClassID) is ITriObject iTri)
             {
-                IObjectState iState = node.EvalWorldState(CurrentTime, true);
-                if (iState.Obj.ConvertToType(CurrentTime, TriObjectClassID) is ITriObject iTri)
-                {
-                    return iTri.Mesh;
-                }
-                return null;
+                return iTri.Mesh;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
-            }
+            return null;
         }
         public static IObject CreateObject(uint classIDA, uint classIDB)
         {
-            try
+            IClass_ID cid = Global.Class_ID.Create(classIDA, classIDB);
+            if (Interface.CreateInstance(SClass_ID.Geomobject, cid) is IObject obj)
             {
-                IClass_ID cid = Global.Class_ID.Create(classIDA, classIDB);
-                if (Interface.CreateInstance(SClass_ID.Geomobject, cid) is IObject obj)
-                {
-                    return obj;
-                }
-                return null;
-
+                return obj;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
-            }
+            return null;
         }
         public static IINode CreateNode(uint classIDA, uint classIDB)
         {
-            try
+            if (CreateObject(classIDA, classIDB) is IObject obj && Interface.CreateObjectNode(obj) is IINode node)
             {
-                if (CreateObject(classIDA, classIDB) is IObject obj && Interface.CreateObjectNode(obj) is IINode node)
-                {
-                    return node;
-                }
-                return null;
-
+                return node;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
-            }
+            return null;
         }
         static public bool ModifierExists( IModifier m , IINode nodeToSearch)
         {
-            try
+            IMXS_Editor_Interface v = Global.MXS_Editor_Interface.Create();
+            if (nodeToSearch != null && m != null)
             {
-                IMXS_Editor_Interface v= Global.MXS_Editor_Interface.Create();
-                if (nodeToSearch != null && m != null)
-                {
-                    IIDerivedObject dobj = nodeToSearch.ObjectRef as IIDerivedObject;
-                    while (dobj != null)
-                    {
-                        int nmods = dobj.NumModifiers;
-                        for (int i = 0; i < nmods; i++)
-                        {
-                            IModifier mod = dobj.GetModifier(i);
-                            if (IsEquals(m, mod))
-                            {
-                                return true;
-                            }
-
-                        }
-                        dobj = dobj.ObjRef as IIDerivedObject;
-                    }
-                }
-                return false;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
-        }
-        static public IModifier GetModifier(IINode nodeToSearch, IClass_ID cid)
-        {
-            try
-            {
-                if (nodeToSearch == null)
-                    return null;
                 IIDerivedObject dobj = nodeToSearch.ObjectRef as IIDerivedObject;
-
                 while (dobj != null)
                 {
                     int nmods = dobj.NumModifiers;
                     for (int i = 0; i < nmods; i++)
                     {
                         IModifier mod = dobj.GetModifier(i);
-                        
-                        if ((mod.ClassID.PartA == cid.PartA) && (mod.ClassID.PartB == cid.PartB))
+                        if (IsEquals(m, mod))
                         {
-                            return mod;
+                            return true;
                         }
+
                     }
                     dobj = dobj.ObjRef as IIDerivedObject;
                 }
+            }
+            return false;
+        }
+        static public IModifier GetModifier(IINode nodeToSearch, IClass_ID cid)
+        {
+            if (nodeToSearch == null)
+                return null;
+            IIDerivedObject dobj = nodeToSearch.ObjectRef as IIDerivedObject;
 
-                return null;
-            }
-            catch (Exception ex)
+            while (dobj != null)
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
+                int nmods = dobj.NumModifiers;
+                for (int i = 0; i < nmods; i++)
+                {
+                    IModifier mod = dobj.GetModifier(i);
+
+                    if ((mod.ClassID.PartA == cid.PartA) && (mod.ClassID.PartB == cid.PartB))
+                    {
+                        return mod;
+                    }
+                }
+                dobj = dobj.ObjRef as IIDerivedObject;
             }
+
+            return null;
         }
         public static List<IModifier> GetModifiers(IINode node)
         {
-            try
+            List<IModifier> res = new List<IModifier>();
+            if (node.WSMDerivedObject is IIDerivedObject dobWSM)
             {
-                List<IModifier> res = new List<IModifier>();
-                if (node.WSMDerivedObject is IIDerivedObject dobWSM)
-                {
-                    res.AddRange(dobWSM.Modifiers.ToList());
-                }
-                // Don't know why but there are modifiers in modifiers ...
-                IIDerivedObject derObj = node.ObjectRef as IIDerivedObject;
-                while (derObj != null)
-                {
-                    res.AddRange(derObj.Modifiers.ToList());
-                    derObj = derObj.ObjRef as IIDerivedObject;
-                }
-                return res;
+                res.AddRange(dobWSM.Modifiers.ToList());
             }
-            catch (Exception ex)
+            // Don't know why but there are modifiers in modifiers ...
+            IIDerivedObject derObj = node.ObjectRef as IIDerivedObject;
+            while (derObj != null)
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return new List<IModifier>();
+                res.AddRange(derObj.Modifiers.ToList());
+                derObj = derObj.ObjRef as IIDerivedObject;
             }
+            return res;
         }
         public static IObject GetBaseObject(IINode n)
         {
-            try
+            if (n != null && n.ObjectRef is IObject obj)
             {
-                if (n != null && n.ObjectRef is IObject obj)
-                {
-                    return obj.FindBaseObject();
-                }
-                return null;
+                return obj.FindBaseObject();
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
-            }
+            return null;
         }
         public static void EnableModifier(IModifier m, bool? onOff, bool? inViews)
         {
-            try
+            if (m != null)
             {
-                if (m != null)
+                if (onOff.HasValue)
                 {
-                    if (onOff.HasValue)
+                    if (onOff.Value)
                     {
-                        if (onOff.Value)
-                        {
-                            //m.EnableModInRender();
-                            m.EnableMod();
-                        }
-                        else
-                        {
-                            //m.DisableModInRender();
-                            m.DisableMod();
-                        }
+                        //m.EnableModInRender();
+                        m.EnableMod();
                     }
-
-                    if (inViews.HasValue)
+                    else
                     {
-                        if (inViews.Value)
-                        {
-                            m.EnableModInViews();
-                        }
-                        else
-                        {
-                            m.DisableModInViews();
-                        }
+                        //m.DisableModInRender();
+                        m.DisableMod();
+                    }
+                }
+
+                if (inViews.HasValue)
+                {
+                    if (inViews.Value)
+                    {
+                        m.EnableModInViews();
+                    }
+                    else
+                    {
+                        m.DisableModInViews();
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
-
         }
         public static void DeleteModifier(IINode n, IModifier m)
         {
-            try
+            if (n != null && m != null)
             {
-                if (n != null && m != null)
-                {
-                    MaxSDK.TheHold.Begin();
-                    Interface.DeleteModifier(n, m);
-                    MaxSDK.TheHold.Accept("Bubo Delete Morpher");
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                MaxSDK.TheHold.Begin();
+                Interface.DeleteModifier(n, m);
+                MaxSDK.TheHold.Accept("Bubo Delete Morpher");
             }
         }
 
         public static void DeleteNodes(IEnumerable<IINode> nodes)
         {
-            try
-            {
-                MaxSDK.Interface.DeleteNodes(ToNodeTab(nodes), true, true, false);
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            MaxSDK.Interface.DeleteNodes(ToNodeTab(nodes), true, true, false);
         }
         public static bool IsClassOf(IReferenceTarget m , IClass_ID classID)
         {
@@ -634,35 +504,19 @@ namespace Bubo
         }
         public static IFPValue ExecuteMxs(string mxs, bool quietError = false)
         {
-            try
-            {
-                IFPValue fpv = Global.FPValue.Create();
+            IFPValue fpv = Global.FPValue.Create();
 #if MAX_2022
                 Global.ExecuteMAXScriptScript(mxs, Autodesk.Max.MAXScript.ScriptSource.NonEmbedded, quietError, fpv, quietError);
 #else
-                Global.ExecuteMAXScriptScript(mxs, quietError, fpv, quietError);
+            Global.ExecuteMAXScriptScript(mxs, quietError, fpv, quietError);
 #endif
-                return fpv;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
-            }
+            return fpv;
         }
         public static List<IINode> GetMaxSelection()
         {
-            try
-            {
-                IINodeTab tab = CreateNodeTab();
-                Interface.GetSelNodeTab(tab);
-                return ToNodeList(tab);
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return new List<IINode>();
-            }
+            IINodeTab tab = CreateNodeTab();
+            Interface.GetSelNodeTab(tab);
+            return ToNodeList(tab);
         }
         public static void SetMaxSelection (List<IINode> nodes)
         {
@@ -670,33 +524,18 @@ namespace Bubo
         }
         public static IINode GetMaxSelection( int index )
         {
-            try
+            List<IINode> sel = GetMaxSelection();
+            if (index >= 0 && index < sel.Count)
             {
-                List<IINode> sel = GetMaxSelection();
-                if (index >= 0 && index < sel.Count )
-                {
-                    return sel[index];
-                }
-                return null;
+                return sel[index];
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
-            }
+            return null;
         }
         public static void AppendNodeTab(IINodeTab nodetab, ITab<IINode> nTab)
         {
-            try
+            for (int i = 0; i < nTab.Count; i++)
             {
-                for (int i = 0; i < nTab.Count; i++)
-                {
-                    nodetab.AppendNode(nTab[i], false, 1);
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                nodetab.AppendNode(nTab[i], false, 1);
             }
         }
         public static List<IINode> ToNodeList(IValue nodesValue)
@@ -706,100 +545,60 @@ namespace Bubo
             {
                 return inodeList;
             }
-            try
+            IFPValue FpReturn = Global.FPValue.Create();
+            nodesValue.ToFpvalue(FpReturn);
+
+            ITab<IINode> tab = FpReturn.NTab;
+
+            for (int i = 0; i < tab.Count; i++)
             {
-                IFPValue FpReturn = Global.FPValue.Create();
-                nodesValue.ToFpvalue(FpReturn);
-
-                ITab<IINode> tab = FpReturn.NTab;
-
-                for (int i = 0; i < tab.Count; i++)
+                if (tab[i] is IINode n)
                 {
-                    if (tab[i] is IINode n)
-                    {
-                        inodeList.Add(n);
-                    }
+                    inodeList.Add(n);
                 }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                inodeList.Clear();
             }
             return inodeList;
         }
         public static List<IINode> ToNodeList(ITab<IINode> nodetab)
         {
-            try
-            {
-                List<IINode> iNodes = new List<IINode>();
+            List<IINode> iNodes = new List<IINode>();
 
-                for (int i = 0; i < nodetab.Count; i++)
-                {
-                    iNodes.Add(nodetab[i]);
-                }
-                return iNodes;
-            }
-            catch (Exception ex)
+            for (int i = 0; i < nodetab.Count; i++)
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return new List<IINode>();
+                iNodes.Add(nodetab[i]);
             }
+            return iNodes;
         }
         public static List<IINode> ToNodeList(IINodeTab nodetab)
         {
-            try
-            {
-                List<IINode> iNodes = new List<IINode>();
+            List<IINode> iNodes = new List<IINode>();
 
-                for (int i = 0; i < nodetab.Count; i++)
-                {
-                    iNodes.Add(nodetab[i]);
-                }
-                return iNodes;
-            }
-            catch (Exception ex)
+            for (int i = 0; i < nodetab.Count; i++)
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return new List<IINode>();
+                iNodes.Add(nodetab[i]);
             }
+            return iNodes;
         }
         public static List<IINode> ToNodeList(int[] handles)
         {
-            try
+            List<IINode> res = new List<IINode>();
+            for (int i = 0; i < handles.Length; i++)
             {
-                List<IINode> res = new List<IINode>();
-                for (int i = 0; i < handles.Length; i++)
+                if (GetAnimByHandle(handles[i]) is IINode n)
                 {
-                    if (GetAnimByHandle(handles[i]) is IINode n)
-                    {
-                        res.Add(n);
-                    }
+                    res.Add(n);
                 }
-                return res;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return new List<IINode>();
-            }
+            return res;
         }
         public static List<T> TabToList<T>(ITab<T> nodetab)
         {
-            try
+            List<T> iNodes = new List<T>();
+            for (int i = 0; i < nodetab.Count; i++)
             {
-                List<T> iNodes = new List<T>();
-                for (int i = 0; i < nodetab.Count; i++)
-                {
-                    iNodes.Add(nodetab[i]);
-                }
-                return iNodes;
+                iNodes.Add(nodetab[i]);
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return new List<T>();
-            }
+            return iNodes;
         }
         public static ITab<IINode> ToTabNode(List<IINode> nodes)
         {
@@ -807,151 +606,85 @@ namespace Bubo
         }
         public unsafe static ITab<float> ToTabFloat(float[] array)
         {
-            try
+            fixed (float* pArray = array)
             {
-                fixed (float* pArray = array)
-                {
-                    // pArray now has the pointer to the array. You can get an IntPtr
-                    //by casting to void, and passing that in.
+                // pArray now has the pointer to the array. You can get an IntPtr
+                //by casting to void, and passing that in.
 
-                    IntPtr intPtr = new IntPtr((void*)pArray);
-                    ITab<float> tab = Global.Tab.Create<float>();
-                    tab.Append(array.Count(), intPtr, 0);
-                    return tab;
-                }
+                IntPtr intPtr = new IntPtr((void*)pArray);
+                ITab<float> tab = Global.Tab.Create<float>();
+                tab.Append(array.Count(), intPtr, 0);
+                return tab;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return Global.Tab.Create<float>();
-            }
-
         }
         public static ITab<float> ToTabFloat(List<float> list)
         {
-            try
+            ExecuteMxs("tmp=#()");
+            foreach (float fl in list)
             {
-                ExecuteMxs("tmp=#()");
-                foreach (float fl in list)
-                {
-                    string mxs = string.Format("append tmp {0}", fl.ToString("0.0000"));
-                    //string mxs = string.Format("append tmp {0}" ,  fl.ToString("0.0000").Replace(",","."));
-                    Tools.Format(MethodBase.GetCurrentMethod(), mxs, DebugLevel.SILENCE);
-                    ExecuteMxs(mxs);
-                }
-                IFPValue fpv = ExecuteMxs("tmp");
-                if (fpv.Type == ParamType2.FloatTab)
-                {
-                    return fpv.FTab;
-                }
-                return Global.Tab.Create<float>();
+                string mxs = string.Format("append tmp {0}", fl.ToString("0.0000"));
+                //string mxs = string.Format("append tmp {0}" ,  fl.ToString("0.0000").Replace(",","."));
+                Tools.Format(MethodBase.GetCurrentMethod(), mxs, DebugLevel.SILENCE);
+                ExecuteMxs(mxs);
             }
-            catch (Exception ex)
+            IFPValue fpv = ExecuteMxs("tmp");
+            if (fpv.Type == ParamType2.FloatTab)
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return Global.Tab.Create<float>();
+                return fpv.FTab;
             }
-
+            return Global.Tab.Create<float>();
         }
         public static IINodeTab CreateNodeTab()
         {
-            try
-            {
-                return Global.INodeTab.Create();
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
-            }
+            return Global.INodeTab.Create();
         }
         public static IINodeTab ToNodeTab(IEnumerable<IINode> iNodes)
         {
-            try
+            IINodeTab nodetab = CreateNodeTab();
+            foreach (IINode n in iNodes)
             {
-                IINodeTab nodetab = CreateNodeTab();
-                foreach (IINode n in iNodes)
-                {
-                    nodetab.AppendNode(n, false, 1);
-                }
-                return nodetab;
+                nodetab.AppendNode(n, false, 1);
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
-            }
+            return nodetab;
         }
         public static IINodeTab ToNodeTab(ITab<IINode> iNodes)
         {
-            try
+            IINodeTab nodetab = CreateNodeTab();
+            for (int i = 0; i < iNodes.Count; i++)
             {
-                IINodeTab nodetab = CreateNodeTab();
-                for (int i = 0; i < iNodes.Count; i++)
-                {
-                    nodetab.AppendNode(iNodes[i], false, 1);
-                }
-                return nodetab;
+                nodetab.AppendNode(iNodes[i], false, 1);
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
-            }
+            return nodetab;
         }
         public static List<IINode> ToNodeList(IEnumerable<uint> handles)
         {
-            try
+            List<IINode> iNodes = new List<IINode>();
+            foreach (uint handle in handles)
             {
-                List<IINode> iNodes = new List<IINode>();
-                foreach (uint handle in handles)
+                if (GetINode(handle) is IINode inode)
                 {
-                    if (GetINode(handle) is IINode inode)
-                    {
-                        iNodes.Add(inode);
-                    }
+                    iNodes.Add(inode);
                 }
-                return iNodes;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return new List<IINode>();
-            }
+            return iNodes;
         }
         public static List<IINode> ToNodeList(uint[] handleTab)
         {
-            try
-            {
-                List<IINode> iNodes = new List<IINode>();
+            List<IINode> iNodes = new List<IINode>();
 
-                for (int i = 0; i < handleTab.Count(); i++)
-                {
-                    IINode inode = GetINode((uint)i);
-                    if (inode != null)
-                    {
-                        iNodes.Add(inode);
-                    }
-                }
-                return iNodes;
-            }
-            catch (Exception ex)
+            for (int i = 0; i < handleTab.Count(); i++)
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return new List<IINode>();
+                IINode inode = GetINode((uint)i);
+                if (inode != null)
+                {
+                    iNodes.Add(inode);
+                }
             }
+            return iNodes;
         }
         public static IINode GetINode(uint handle)
         {
-            try
-            {
-                return Interface.GetINodeByHandle(handle);
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
-            }
+            return Interface.GetINodeByHandle(handle);
         }
         public static IINode GetINodebyName (string name)
         {
@@ -959,21 +692,13 @@ namespace Bubo
         }
         public static List<IINode> GetINodeListbyName(List<string> names)
         {
-            try
+            List<IINode> nodes = new List<IINode>();
+            foreach (string name in names)
             {
-                List<IINode> nodes = new List<IINode>();
-                foreach (string name in names)
-                {
-                    if (MaxSDK.GetINodebyName(name) is IINode n)
+                if (MaxSDK.GetINodebyName(name) is IINode n)
                     nodes.Add(n);
-                }
-                return nodes;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return new List<IINode>();
-            }
+            return nodes;
         }
        
         public static Vector3D[] ToVector(IPoint3[] points)
@@ -1002,57 +727,33 @@ namespace Bubo
         }
         public static IINodeTab ToHandleTab(int[] handleTab)
         {
-            try
+            IINodeTab nodetab = CreateNodeTab();
+            for (int i = 0; i < handleTab.Count(); i++)
             {
-                IINodeTab nodetab = CreateNodeTab();
-                for (int i = 0; i < handleTab.Count(); i++)
-                {
-                    IINode inode = GetINode((uint)i);
+                IINode inode = GetINode((uint)i);
 
-                    if (inode != null)
-                    {
-                        nodetab.AppendNode(inode, false, 1);
-                    }
+                if (inode != null)
+                {
+                    nodetab.AppendNode(inode, false, 1);
                 }
-                return nodetab;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return CreateNodeTab();
-            }
+            return nodetab;
         }
         public static int[] ToHandleArray(IEnumerable<IINode> nodes)
         {
-            try
-            {
-                return nodes.Select(x => (int)GetHandleByAnim(x)).ToArray();
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return new int[0];
-            }
+            return nodes.Select(x => (int)GetHandleByAnim(x)).ToArray();
         }
 
         static int[] OffsetIntTab (IEnumerable<int> indices, int offset)
         {
-            try
+            IEnumerator<int> it = indices.GetEnumerator();
+            int[] intTab = new int[indices.Count()];
+            for (int i = 0; i < intTab.Count(); i++)
             {
-                IEnumerator<int> it = indices.GetEnumerator();
-                int[] intTab = new int[indices.Count()];
-                for (int i = 0; i < intTab.Count(); i++)
-                {
-                    it.MoveNext();
-                    intTab[i] = it.Current + offset;
-                }
-                return intTab;
+                it.MoveNext();
+                intTab[i] = it.Current + offset;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return new int[] { };
-            }
+            return intTab;
         }
         public static int[] ToMaxIndexTab(IEnumerable<int> indices)
         {
@@ -1068,130 +769,63 @@ namespace Bubo
         }
         public static UIntPtr GetHandleByAnim(IAnimatable obj)
         {
-            try
-            {
-                return Global.Animatable.GetHandleByAnim(obj);
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return UIntPtr.Zero;
-            }
+            return Global.Animatable.GetHandleByAnim(obj);
         }
         public static bool IsEquals(IAnimatable obj1 , IAnimatable obj2)
         {
-            try
-            {
-                return Global.Animatable.GetHandleByAnim(obj1) == Global.Animatable.GetHandleByAnim(obj2);
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            return Global.Animatable.GetHandleByAnim(obj1) == Global.Animatable.GetHandleByAnim(obj2);
         }
         public static IAnimatable GetAnimByHandle(int handle)
         {
-            try
-            {
-                return Global.Animatable.GetAnimByHandle((UIntPtr)handle);
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
-            }
+            return Global.Animatable.GetAnimByHandle((UIntPtr)handle);
         }
         public static IINode PickNode()
         {
-            try
+            IFPValue fpv = ExecuteMxs("pickObject()");
+            if (fpv.Type == ParamType2.Inode)
             {
-                IFPValue fpv = ExecuteMxs("pickObject()");
-                if (fpv.Type == ParamType2.Inode)
-                {
-                    return fpv.N;
-                }
-                return null;
+                return fpv.N;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return null;
-            }
+            return null;
         }
         public static void ToMaxScript(IAnimatable obj, string mxsVar)
         {
-            try
-            {
-                UIntPtr handle = GetHandleByAnim(obj);
-                string Mxs = string.Format("{0} = GetAnimByHandle {1}", mxsVar, handle);
-                ExecuteMxs(Mxs, false);
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            UIntPtr handle = GetHandleByAnim(obj);
+            string Mxs = string.Format("{0} = GetAnimByHandle {1}", mxsVar, handle);
+            ExecuteMxs(Mxs, false);
         }
         public static void ToMaxScript(IEnumerable<IAnimatable> iNodes, string mxsVar)
         {
-            try
+            string Mxs = string.Format("{0} = #()", mxsVar);
+            ExecuteMxs(Mxs, false);
+            foreach (IINode node in iNodes)
             {
-                string Mxs = string.Format("{0} = #()", mxsVar);
+                Mxs = string.Format("append {0} ( MaxOps.GetNodeByHandle {1})", mxsVar, node.Handle.ToString());
                 ExecuteMxs(Mxs, false);
-                foreach (IINode node in iNodes)
-                {
-                    Mxs = string.Format("append {0} ( MaxOps.GetNodeByHandle {1})", mxsVar, node.Handle.ToString());
-                    ExecuteMxs(Mxs, false);
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
             }
         }
         public static void ToMaxScript(string var, string varName)
         {
-            try
-            {
-                ExecuteMxs(string.Format("{0} = @\"{1}\"", varName, var), false);
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            ExecuteMxs(string.Format("{0} = @\"{1}\"", varName, var), false);
         }
         public static void ToMaxScript(IEnumerable<int> datas, string mxsVar , bool indexForMax )
         {
-            try
+            string Mxs = string.Format("{0} = #()", mxsVar);
+            ExecuteMxs(Mxs, false);
+            foreach (int i in datas)
             {
-                string Mxs = string.Format("{0} = #()", mxsVar);
+                Mxs = string.Format("append {0} ({1})", mxsVar, (indexForMax) ? i + 1 : i);
                 ExecuteMxs(Mxs, false);
-                foreach (int i in datas)
-                {
-                    Mxs = string.Format("append {0} ({1})", mxsVar, (indexForMax) ? i + 1 : i );
-                    ExecuteMxs(Mxs, false);
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
             }
         }
         public static void ToMaxScript(IEnumerable<string> datas, string mxsVar)
         {
-            try
+            string Mxs = string.Format("{0} = #()", mxsVar);
+            ExecuteMxs(Mxs, false);
+            foreach (string data in datas)
             {
-                string Mxs = string.Format("{0} = #()", mxsVar);
+                Mxs = string.Format("append {0}  @\"{1}\"", mxsVar, data);
                 ExecuteMxs(Mxs, false);
-                foreach (string data in datas)
-                {
-                    Mxs = string.Format("append {0}  @\"{1}\"" , mxsVar, data );
-                    ExecuteMxs(Mxs, false);
-                }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
             }
         }
         static public IModifier GetCurrentModifier()

@@ -1,4 +1,11 @@
-﻿using System;
+﻿///==========================================
+/// Title: Bubo - Setup Manager
+/// Author: Pierre Lasbgnes
+/// Date:  2012 - 2020
+///==========================================
+///
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -19,8 +26,16 @@ using Autodesk.Max;
 using System.Timers;
 using System.Runtime.InteropServices;
 
+
 namespace Bubo
 {
+    /// <summary>
+    /// Interaction logic for BuboUI.xaml
+    /// Ui Main control 
+    /// - Contain 3 tabs, skin, morph, DataProjection
+    /// - Each tab allow user to perform spécialized actions.
+    /// </summary>
+    /// 
     public partial class BuboUI : UserControl
     {
         bool _isHolding;
@@ -62,81 +77,62 @@ namespace Bubo
         }
         public void OnClose()
         {
-            try
-            {
-                Tools.Format(MethodBase.GetCurrentMethod(), "Dispose");
 
-                if (Main.Instance.SelectedTab == 0 && Main.Skin.CurrentSkin is SkinMod mod)
-                {
-                    bool editEnv = mod.GetEditEnvelopes();
-                    mod.SetEditEnvelopesDisplay(false, editEnv);
-                    mod.DisplayHoldBones(false);
-                }
-                else if (Main.Instance.SelectedTab == 2 && Main.Instance.Projection is ProjectDataEngine proj)
-                {
-                    proj.DisplayVertexColor(false);
-                }
+            Tools.Format(MethodBase.GetCurrentMethod(), "Dispose");
 
-                Main.Instance.Dispose();
-                if (GetTextUI._defaultDialog != null && GetTextUI._defaultDialog.IsVisible)
-                {
-                    GetTextUI._defaultDialog.Close();
-                }
-            }
-            catch (Exception ex)
+            if (Main.Instance.SelectedTab == 0 && Main.Skin.CurrentSkin is SkinMod mod)
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                bool editEnv = mod.GetEditEnvelopes();
+                mod.SetEditEnvelopesDisplay(false, editEnv);
+                mod.DisplayHoldBones(false);
             }
+            else if (Main.Instance.SelectedTab == 2 && Main.Instance.Projection is ProjectDataEngine proj)
+            {
+                proj.DisplayVertexColor(false);
+            }
+
+            Main.Instance.Dispose();
+            if (GetTextUI._defaultDialog != null && GetTextUI._defaultDialog.IsVisible)
+            {
+                GetTextUI._defaultDialog.Close();
+            }
+
         }
 
         private void TreeView_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            try
+            if (sender is TreeView tv && Main.CurrentEngine is BuboEngine engine && engine.SelectedMaxItem != null)
             {
-                if (sender is TreeView tv && Main.CurrentEngine is BuboEngine engine && engine.SelectedMaxItem != null)
+                Point pos = tv.PointToScreen(new Point(0d, 0d));
+                if (GetTextUI.OpenGetTextDialog(null, pos, 300, "Rename Channel", "", engine.SelectedMaxItem.Name, GetNameOptions.All) is string newValueS)
                 {
-                    Point pos = tv.PointToScreen(new Point(0d, 0d));
-                    if (GetTextUI.OpenGetTextDialog(null, pos, 300, "Rename Channel", "", engine.SelectedMaxItem.Name, GetNameOptions.All) is string newValueS)
+                    if (Main.CurrentEngine.CurrentMod is MorphMod mod)
                     {
-                        if (Main.CurrentEngine.CurrentMod is MorphMod mod)
-                        {
-                            mod.RenameMaxItem( mod.SelectedItem, newValueS );
-                        }
+                        mod.RenameMaxItem( mod.SelectedItem, newValueS );
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
             }
         }
         private void OnMouseDownTreeView(object sender, MouseButtonEventArgs e)
         {
-            try
+            if (sender is TreeView tv)
             {
-                if (sender is TreeView tv)
+                if (e.ChangedButton == MouseButton.Right)
                 {
-                    if (e.ChangedButton == MouseButton.Right)
+                    if (e.ClickCount == 1)
                     {
-                        if (e.ClickCount == 1)
+                        string key = Main.CurrentEngine.KeyTreeViewCM;
+                        Tools.Format(MethodBase.GetCurrentMethod(), "Begin");
+                        if (tv.FindResource(key) is ContextMenu cm)
                         {
-                            string key = Main.CurrentEngine.KeyTreeViewCM;
-                            Tools.Format(MethodBase.GetCurrentMethod(), "Begin");
-                            if (tv.FindResource(key) is ContextMenu cm)
-                            {
-                                tv.ContextMenu = cm;
-                            }
+                            tv.ContextMenu = cm;
                         }
                     }
-                    else
-                    {
-                        
-                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                else
+                {
+                        
+                }
             }
         }
 
@@ -210,41 +206,33 @@ namespace Bubo
             {
                 _isMouseDown = false;
             }
-            //_isMouseDown = false;
         }
         private void OnHoldImageMouseDown(object sender, MouseButtonEventArgs e)
         {
-            try
+            SkinItem currentIt = null;
+            if (sender is Image image && image.DataContext is SkinItem it)
             {
-                SkinItem currentIt = null;
-                if (sender is Image image && image.DataContext is SkinItem it)
-                {
-                    currentIt = it;
-                }
-                else if (sender is Image image2 && image2.DataContext is WeightItem wItem && wItem.LinkedItem is SkinItem it2)
-                {
-                    currentIt = it2;
-                }
-                if (currentIt != null)
-                {
-                    List<TreeItem> sel = new List<TreeItem>(Main.Skin.SelectedItems);
-                    bool onOff = !currentIt.IsHold;
-                    if (sel.Count > 1 && sel.Exists(x => x.Equals(currentIt)))
-                    {
-                        _isHolding = true;
-                        Main.Skin.CurrentSkin.Hold(sel.Where(x => x is SkinItem).Cast<SkinItem>(), onOff);
-                    }
-                    else
-                    {
-                        _isHolding = true;
-                        Main.Skin.CurrentSkin.Hold(currentIt, onOff);
-                        Main.Skin.SelectItem(currentIt, SelectionItem.Select, false);
-                    }
-                }
+                currentIt = it;
             }
-            catch (Exception ex)
+            else if (sender is Image image2 && image2.DataContext is WeightItem wItem && wItem.LinkedItem is SkinItem it2)
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                currentIt = it2;
+            }
+            if (currentIt != null)
+            {
+                List<TreeItem> sel = new List<TreeItem>(Main.Skin.SelectedItems);
+                bool onOff = !currentIt.IsHold;
+                if (sel.Count > 1 && sel.Exists(x => x.Equals(currentIt)))
+                {
+                    _isHolding = true;
+                    Main.Skin.CurrentSkin.Hold(sel.Where(x => x is SkinItem).Cast<SkinItem>(), onOff);
+                }
+                else
+                {
+                    _isHolding = true;
+                    Main.Skin.CurrentSkin.Hold(currentIt, onOff);
+                    Main.Skin.SelectItem(currentIt, SelectionItem.Select, false);
+                }
             }
         }
         private void OnHoldClick(object sender, RoutedEventArgs e)
@@ -459,23 +447,16 @@ namespace Bubo
         }
         private void OnRenameItemClick(object sender, RoutedEventArgs e)
         {
-            try
+            if (sender is MenuItem tv && Main.CurrentEngine is BuboEngine engine && engine.SelectedMaxItem != null)
             {
-                if (sender is MenuItem tv && Main.CurrentEngine is BuboEngine engine && engine.SelectedMaxItem != null)
+                Point pos = tv.PointToScreen(new Point(0d, 0d));
+                if (GetTextUI.OpenGetTextDialog(null, pos, 300, "Rename Channel", "", engine.SelectedMaxItem.Name, GetNameOptions.All) is string newValueS)
                 {
-                    Point pos = tv.PointToScreen(new Point(0d, 0d));
-                    if (GetTextUI.OpenGetTextDialog(null, pos, 300, "Rename Channel", "", engine.SelectedMaxItem.Name, GetNameOptions.All) is string newValueS)
+                    if (Main.CurrentEngine.CurrentMod is MorphMod mod)
                     {
-                        if (Main.CurrentEngine.CurrentMod is MorphMod mod)
-                        {
-                            mod.RenameMaxItem(mod.SelectedItem, newValueS);
-                        }
+                        mod.RenameMaxItem(mod.SelectedItem, newValueS);
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
             }
         }
 

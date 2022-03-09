@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 namespace Bubo
 {
+    /// <summary>
+    /// inherit from MaxItem
+    /// used in morph treeview items
+    /// </summary>
     public class MorphItem : MaxItem
     {
         public MorphMod CurrentMod{
@@ -102,34 +106,20 @@ namespace Bubo
 
         public override void Refresh()
         {
-            try
-            {
-                Name = GetName();
-                IsEditableValue = CheckEditableValue();
-                HasTargets = CheckHasTargets();
+            Name = GetName();
+            IsEditableValue = CheckEditableValue();
+            HasTargets = CheckHasTargets();
 
-                _isActive = CheckIsActive();
-                _value = GetChValue();
+            _isActive = CheckIsActive();
+            _value = GetChValue();
 
-                NotifyPropertyChanged(nameof(IsActive));
-                NotifyPropertyChanged(nameof(Value));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            NotifyPropertyChanged(nameof(IsActive));
+            NotifyPropertyChanged(nameof(Value));
         }
         public void RefreshValue()
         {
-            try
-            {
-                _value = GetChValue();
-                NotifyPropertyChanged(nameof(Value));
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            _value = GetChValue();
+            NotifyPropertyChanged(nameof(Value));
         }
         void SetChActive(bool val)
         {
@@ -149,71 +139,31 @@ namespace Bubo
         }
         bool CheckEditableValue()
         {
-            try
-            {
-                bool isEditable = MaxSDK.ExecuteMxs(string.Format("MorphJob.IsEditableChannel {0} {1}", BuboMod.MxsModifier, MaxIndex + 1)).B;
-                return isEditable;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            bool isEditable = MaxSDK.ExecuteMxs(string.Format("MorphJob.IsEditableChannel {0} {1}", BuboMod.MxsModifier, MaxIndex + 1)).B;
+            return isEditable;
         }
         public string SetNameFromTarget()
         {
-            try
+            if (HasTargets)
             {
-                if (HasTargets)
-                {
-                    string targetName = MaxSDK.ExecuteMxs(string.Format("(WM3_GetProgressiveMorphNode {0} {1} 1).name", BuboMod.MxsModifier, MaxIndex + 1)).S;
-                    SetName(targetName);
-                    return targetName;
-                }
-                return "";
+                string targetName = MaxSDK.ExecuteMxs(string.Format("(WM3_GetProgressiveMorphNode {0} {1} 1).name", BuboMod.MxsModifier, MaxIndex + 1)).S;
+                SetName(targetName);
+                return targetName;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return "";
-            }
+            return "";
         }
         public string GetName()
         {
-            try
-            {
-                return MaxSDK.ExecuteMxs(string.Format("WM3_MC_GetName {0} {1}", BuboMod.MxsModifier, MaxIndex + 1)).S;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return "";
-            }
+            return MaxSDK.ExecuteMxs(string.Format("WM3_MC_GetName {0} {1}", BuboMod.MxsModifier, MaxIndex + 1)).S;
         }
         public bool SetName(string name)
         {
-            try
-            {
-                Name = name;
-                return MaxSDK.ExecuteMxs(string.Format("WM3_MC_SetName {0} {1} \"{2}\"", BuboMod.MxsModifier, MaxIndex + 1 , name)).B; 
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            Name = name;
+            return MaxSDK.ExecuteMxs(string.Format("WM3_MC_SetName {0} {1} \"{2}\"", BuboMod.MxsModifier, MaxIndex + 1, name)).B;
         }
         bool CheckHasTargets()
         {
-            try
-            {
-                return MaxSDK.ExecuteMxs(string.Format("WM3_GetProgressiveMorphNode {0} {1} 1 != undefined", BuboMod.MxsModifier, MaxIndex + 1)).B;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            return MaxSDK.ExecuteMxs(string.Format("WM3_GetProgressiveMorphNode {0} {1} 1 != undefined", BuboMod.MxsModifier, MaxIndex + 1)).B;
         }
         void SetChValue(float val)
         {
@@ -229,17 +179,9 @@ namespace Bubo
         }
         float GetChValue()
         {
-            try
-            {
-                float val = MaxSDK.ExecuteMxs(string.Format("WM3_MC_GetValue {0} {1}", BuboMod.MxsModifier, MaxIndex + 1)).F;
-                val = (val < 0) ? 0 : val;
-                return val;
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return 0.0f;
-            }
+            float val = MaxSDK.ExecuteMxs(string.Format("WM3_MC_GetValue {0} {1}", BuboMod.MxsModifier, MaxIndex + 1)).F;
+            val = (val < 0) ? 0 : val;
+            return val;
         }
     }
 }

@@ -1,4 +1,10 @@
-﻿using Autodesk.Max;
+﻿///==========================================
+/// Title: Bubo - Setup Manager
+/// Author: Pierre Lasbgnes
+/// Date:  2012 - 2020
+///==========================================
+///
+using Autodesk.Max;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -15,6 +21,9 @@ using System.Xml.Linq;
 namespace Bubo
 {
 
+    /// <summary>
+    /// store all engines to be called in 3dsmax
+    /// </summary>
     public class Main : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
@@ -104,45 +113,38 @@ namespace Bubo
 
         public void SyncEngineFromUI(int index , IModifier m, IINode node)
         {
-            try
+            _selectedTab = index;
+            LinkMax.UnregisterWhenNodeTransform();
+            if (index < 2 && PreviewTabFirst)
             {
-                _selectedTab = index;
-                LinkMax.UnregisterWhenNodeTransform();
-                if (index < 2 && PreviewTabFirst)
+                if (index == 0)
                 {
-                    if (index == 0)
-                    {
-                        _currentEngine = Skin;
-                    }
-                    else 
-                    {
-                        _currentEngine = Morph;
-                        LinkMax.RegisterWhenNodeTransform(node);
-                    }
+                    _currentEngine = Skin;
+                }
+                else
+                {
+                    _currentEngine = Morph;
+                    LinkMax.RegisterWhenNodeTransform(node);
+                }
 
-                    if (_currentEngine is BuboEngine && node != null)
+                if (_currentEngine is BuboEngine && node != null)
+                {
+                    if (UISettings.Instance.SmartMode && _currentEngine.CurrentMod != null && MaxSDK.IsEquals(_currentEngine.CurrentMod.Node, node))
                     {
-                        if (UISettings.Instance.SmartMode && _currentEngine.CurrentMod != null && MaxSDK.IsEquals(_currentEngine.CurrentMod.Node, node ))
+                        LinkMax.StartMute();
+                        MaxSDK.SetCurrentObject(_currentEngine.CurrentMod.Modifier);
+                    }
+                    else
+                    {
+                        if (_currentEngine.AutoLoadMod(node) is IBuboMod mod && UISettings.Instance.SmartMode)
                         {
                             LinkMax.StartMute();
-                            MaxSDK.SetCurrentObject(_currentEngine.CurrentMod.Modifier);
-                        }
-                        else
-                        {
-                            if (_currentEngine.AutoLoadMod(node) is IBuboMod mod && UISettings.Instance.SmartMode)
-                            {
-                                LinkMax.StartMute();
-                                MaxSDK.SetCurrentObject(mod.Modifier);
-                            }
+                            MaxSDK.SetCurrentObject(mod.Modifier);
                         }
                     }
                 }
-                PreviewTabFirst = false;
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            PreviewTabFirst = false;
         }
         public void SyncEngineFromMax(IModifier m, IINode node)
         {
@@ -181,152 +183,94 @@ namespace Bubo
         }
         public void SyncModPanel(IINode node)
         {
-            try
+            if (UISettings.Instance.SmartMode && _currentEngine is BuboEngine engine && node != null)
             {
-                if (UISettings.Instance.SmartMode &&  _currentEngine is BuboEngine engine && node != null)
+                if (engine.CurrentMod != null && MaxSDK.IsEquals(engine.CurrentMod.Node, node))
                 {
-                    if (engine.CurrentMod != null && MaxSDK.IsEquals(engine.CurrentMod.Node, node))
+                    MaxSDK.SetCurrentObject(engine.CurrentMod.Modifier);
+                }
+                else
+                {
+                    if (engine.AutoLoadMod(node) is IBuboMod mod)
                     {
-                        MaxSDK.SetCurrentObject(engine.CurrentMod.Modifier);
-                    }
-                    else
-                    {
-                        if (engine.AutoLoadMod(node) is IBuboMod mod)
-                        {
-                            MaxSDK.SetCurrentObject(mod.Modifier);
-                        }
+                        MaxSDK.SetCurrentObject(mod.Modifier);
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
             }
         }
         public void Dispose()
         {
-            try
+            if (!IsDisposed)
             {
-                if (!IsDisposed)
-                {
-                    LinkMax.UnregisterCallbacks();
-                }
-                IsDisposed = true;
-                MaxSDK.SetViewportDisplay(ViewportDisplayColor.Material);
+                LinkMax.UnregisterCallbacks();
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            IsDisposed = true;
+            MaxSDK.SetViewportDisplay(ViewportDisplayColor.Material);
         }
         public void UnDispose()
         {
-            try
+            if (IsDisposed)
             {
-                if (IsDisposed)
-                {
-                    LinkMax.RegisterCallbacks();
-                    
-                }
-                if (SelectedTab == 1)
-                {
-                    LinkMax.RegisterWhenNodeTransform(MaxSDK.GetMaxSelection(0));
-                }
-                IsDisposed = false;
+                LinkMax.RegisterCallbacks();
+
             }
-            catch (Exception ex)
+            if (SelectedTab == 1)
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                LinkMax.RegisterWhenNodeTransform(MaxSDK.GetMaxSelection(0));
             }
+            IsDisposed = false;
         }
         public void LoadUI()
         {
-            try
+            UISettings.Instance.LoadSettings();
+            if (!File.Exists(INI.ConfigFile))
             {
-                UISettings.Instance.LoadSettings();
-                if (!File.Exists(INI.ConfigFile))
-                {
-                    ResetConfig();
-                }
-                foreach (BuboEngine engine in _tabEngines)
-                {
-                   engine.InitUI();
-                }
+                ResetConfig();
             }
-            catch (Exception ex)
+            foreach (BuboEngine engine in _tabEngines)
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                engine.InitUI();
             }
         }
         public void ResetConfig()
         {
-            try
+            XDocument doc = new XDocument();
+            XElement rootDoc = new XElement("Root");
+            doc.Add(rootDoc);
+            foreach (BuboEngine engine in _tabEngines)
             {
-                XDocument doc = new XDocument();
-                XElement rootDoc = new XElement("Root");
-                doc.Add(rootDoc);
-                foreach (BuboEngine engine in _tabEngines)
-                {
-                    engine.ResetConfig(rootDoc);
-                }
-                doc.Save(INI.ConfigFile);
+                engine.ResetConfig(rootDoc);
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            doc.Save(INI.ConfigFile);
         }
         public void Refresh()
         {
-            try
+            if (_tabEngines != null)
             {
-                if (_tabEngines!=null)
+                foreach (BuboEngine engine in _tabEngines.Where(x => x != null))
                 {
-                    foreach (BuboEngine engine in _tabEngines.Where(x=>x!=null))
-                    {
-                        engine.DisposeConfig();
-                        engine.InitUI();
-                    }
+                    engine.DisposeConfig();
+                    engine.InitUI();
                 }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
             }
         }
         public void DisposeScene()
         {
-            try
+            foreach (BuboEngine engine in _tabEngines)
             {
-                foreach (BuboEngine engine in _tabEngines)
-                {
-                    engine.DisposeMod();
-                    engine.InitUI();
-                }
+                engine.DisposeMod();
+                engine.InitUI();
+            }
 
-                PolySym.Dispose();
-                Projection.Dispose();
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            PolySym.Dispose();
+            Projection.Dispose();
         }
         public void DetectSymmetry(IINode node)
         {
-            try
-            {
-                PolySym.DetectMirror(node);
-                MaxSDK.ToMaxScript(node, "n");
-                MaxSDK.ToMaxScript(PolySym.NotSymmetrical, "sel", false);
-                MaxSDK.ExecuteMxs("polyop.setVertSelection n sel");
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
-
+            PolySym.DetectMirror(node);
+            MaxSDK.ToMaxScript(node, "n");
+            MaxSDK.ToMaxScript(PolySym.NotSymmetrical, "sel", false);
+            MaxSDK.ExecuteMxs("polyop.setVertSelection n sel");
         }
-     
     }
 }

@@ -9,6 +9,10 @@ using Autodesk.Max;
 
 namespace Bubo
 {
+    /// <summary>
+    /// inherit from BuboEngine  
+    ///  - manage morph treeview actions 
+    /// </summary>
     public class MorphEngine : BuboEngine
     {
         #region override properties
@@ -171,21 +175,13 @@ namespace Bubo
         #endregion
         public void ForceProcessInSelection(MorphItem item)
         {
-            try
+            if (CurrentMod != null && CurrentMod is MorphMod mod)
             {
-                if (CurrentMod != null && CurrentMod is MorphMod mod)
+                List<TreeItem> sel = new List<TreeItem>(SelectedItems);
+                if (!sel.Exists(x => x.Equals(item)))
                 {
-                    List<TreeItem> sel = new List<TreeItem>(SelectedItems);
-                    if ( !sel.Exists(x => x.Equals(item)))
-                    {
-                        SelectItem(item, SelectionItem.Select, false );
-                    }
+                    SelectItem(item, SelectionItem.Select, false);
                 }
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-
             }
         }
 

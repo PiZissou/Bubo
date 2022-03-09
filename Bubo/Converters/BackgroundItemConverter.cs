@@ -11,50 +11,43 @@ using System.Windows.Media;
 
 namespace Bubo
 {
+    /// <summary>
+    /// object type converted to soliColorBrush
+    /// </summary>
     public class BackgroundItemConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            Tools.Format(MethodBase.GetCurrentMethod(),"");
-            try
+            if (value is LayerItem layerItem)
             {
-
-                if (value is LayerItem layerItem)
+                if  (layerItem.IsItemSelected )
                 {
-                    if  (layerItem.IsItemSelected )
-                    {
-                        return SystemColors.HighlightBrushKey;
-                    }
-                    else
-                    {
-                        return BuboUI.Instance.FindResource("layerItemBrush");
-                    }
-                    
-                }
-                if (value is MaxItem maxItem )
-                {
-                    if (maxItem.IsItemSelected)
-                    {
-                        return SystemColors.HighlightBrushKey;
-                    }
-                    else if (maxItem.IsPair)
-                    {
-                        return BuboUI.Instance.FindResource("layerItemBrush");
-                    }
-                    else
-                    {
-                        return BuboUI.Instance.FindResource("MaxItemPairBrush");
-                    }
+                    return SystemColors.HighlightBrushKey;
                 }
                 else
                 {
-                    return new SolidColorBrush(Colors.Transparent);
+                    return BuboUI.Instance.FindResource("layerItemBrush");
+                }
+                    
+            }
+            if (value is MaxItem maxItem )
+            {
+                if (maxItem.IsItemSelected)
+                {
+                    return SystemColors.HighlightBrushKey;
+                }
+                else if (maxItem.IsPair)
+                {
+                    return BuboUI.Instance.FindResource("layerItemBrush");
+                }
+                else
+                {
+                    return BuboUI.Instance.FindResource("MaxItemPairBrush");
                 }
             }
-            catch (Exception ex)
+            else
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return Colors.Red;
+                return new SolidColorBrush(Colors.Transparent);
             }
         }
 

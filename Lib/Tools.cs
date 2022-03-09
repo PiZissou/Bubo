@@ -8,6 +8,9 @@ using System.Windows.Media;
 
 namespace Bubo
 {
+    /// <summary>
+    /// print debug in 3dsmax
+    /// </summary>
     public enum DebugLevel { SILENCE, EXCEPTION, ERROR, INFO, WARNING, VERBOSE, ULTRAVERBOSE }
 
     public static partial class Tools

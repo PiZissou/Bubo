@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 namespace Bubo
 {
+    /// <summary>
+    /// allow to perfom undo skin weight operations with 3dsmax undo system
+    /// used by skinMod class
+    /// </summary>
     public class RestoreSkinWeights : Autodesk.Max.Plugins.RestoreObj
     {
         IINode SkinNode { get; }
@@ -31,26 +35,12 @@ namespace Bubo
         }
         public override void Redo()
         {
-            try
-            {
-                SetSkinVtxWeights( NewSet);
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-            }
+            SetSkinVtxWeights( NewSet);
         }
 
         public override void Restore(bool isUndo)
         {
-            try
-            {
-                SetSkinVtxWeights(OldSet);
-            }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex );
-            }
+            SetSkinVtxWeights(OldSet);
         }
     }
 }

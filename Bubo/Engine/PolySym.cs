@@ -9,19 +9,15 @@ using System.Threading.Tasks;
 
 namespace Bubo
 {
+    /// <summary>
+    /// used to detect symetrie in polyMesh 
+    /// </summary>
     public class PolySym : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
         public void NotifyPropertyChanged(string propName)
         {
-            try
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-            }
-            catch (Exception ex)
-            {
-                Tools.Print("NotifyPropertyChangedException : " + ex.Message, DebugLevel.EXCEPTION);
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
         bool _isDetected = false;
         public bool IsDetected
@@ -103,64 +99,54 @@ namespace Bubo
         }
         public bool DetectMirror(IINode node)
         {
-            try
+            RefNode = node;
+            List<IPoint3> vertices = MaxSDK.GetPolyVerts(node);
+            _count = vertices.Count;
+            Mid.Clear();
+            Pos.Clear();
+            Neg.Clear();
+            NotSym.Clear();
+
+            Tools.Print("Detect Mirror. Precision : " + Precision, DebugLevel.VERBOSE);
+            Tools.Print("Detect Mirror. MiddlePrecision : " + MiddlePrecision, DebugLevel.VERBOSE);
+
+            for (int i = 0; i < vertices.Count; i++)
             {
-                RefNode = node;
-                List<IPoint3> vertices = MaxSDK.GetPolyVerts(node);
-                _count = vertices.Count;
-                Mid.Clear();
-                Pos.Clear();
-                Neg.Clear();
-                NotSym.Clear();
+                NotSym.Add(i);
+            }
 
-                Tools.Print("Detect Mirror. Precision : " + Precision, DebugLevel.VERBOSE);
-                Tools.Print("Detect Mirror. MiddlePrecision : " + MiddlePrecision, DebugLevel.VERBOSE);
-
-                for (int i = 0; i < vertices.Count; i++)
+            for (int i = 0; i < vertices.Count; i++)
+            {
+                IPoint3 vert = vertices[i];
+                if (vert.X > Precision) // loop through one side
                 {
-                    NotSym.Add(i);
-                }
-
-                for (int i = 0; i < vertices.Count; i++)
-                {
-                    IPoint3 vert = vertices[i];
-                    if (vert.X > Precision) // loop through one side
+                    for (int j = 0; j < vertices.Count; j++)
                     {
-                        for (int j = 0; j < vertices.Count; j++)
+                        if (i != j)
                         {
-                            if (i != j)
+                            IPoint3 vert2 = vertices[j];
+                            float x = vert.X + vert2.X;
+                            float y = vert.Y - vert2.Y;
+                            float z = vert.Z - vert2.Z;
+                            if (Math.Abs(x) < Precision && Math.Abs(y) < Precision && Math.Abs(z) < Precision)
                             {
-                                IPoint3 vert2 = vertices[j];
-                                float x = vert.X + vert2.X;
-                                float y = vert.Y - vert2.Y;
-                                float z = vert.Z - vert2.Z;
-                                if (Math.Abs(x) < Precision && Math.Abs(y) < Precision && Math.Abs(z) < Precision)
-                                {
-                                    Pos.Add(i);
-                                    Neg.Add(j);
-                                    NotSym.Remove(i);
-                                    NotSym.Remove(j);
-                                    break;
-                                }
+                                Pos.Add(i);
+                                Neg.Add(j);
+                                NotSym.Remove(i);
+                                NotSym.Remove(j);
+                                break;
                             }
                         }
                     }
-                    if (Math.Abs(vert.X) <= MiddlePrecision)
-                    {
-                        Mid.Add(i);
-                        NotSym.Remove(i);
-                    }
-                    //int k = (i / vertices.Count) * 100;
                 }
-                IsDetected = true;
-                return true;
-                //return (NotSym.Count==0)?true:false;
+                if (Math.Abs(vert.X) <= MiddlePrecision)
+                {
+                    Mid.Add(i);
+                    NotSym.Remove(i);
+                }
             }
-            catch (Exception ex)
-            {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
-                return false;
-            }
+            IsDetected = true;
+            return true;
         }
         public void Dispose()
         {

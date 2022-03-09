@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Bubo
 {
+    /// <summary>
+    /// used to set value on SpinnerControl
+    /// </summary>
     public class ValueChangedArg : EventArgs
     {
         public Double NewValue;

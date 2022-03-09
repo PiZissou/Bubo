@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace Bubo
 {
+    /// <summary>
+    /// used to call custom methods when 3dsmax time changed
+    /// </summary>
     public class TimeChangedCallback : TimeChangeCallback
     {
         static TimeChangedCallback _timeChangedCallbackInstance;

@@ -10,6 +10,11 @@ using System.Windows.Media.Media3D;
 
 namespace Bubo
 {
+    /// <summary>
+    /// used to store and perform operations of channelData
+    /// implement operator+ 
+    /// implement operator* 
+    /// </summary>
     public class MorphData
     {
         public ChannelData[] Channels { get; } = new ChannelData[] { };

@@ -9,19 +9,15 @@ using System.Threading.Tasks;
 
 namespace Bubo
 {
+    /// <summary>
+    /// used in Skin weight list items 
+    /// </summary>
     public class WeightItem : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
         public void NotifyPropertyChanged(string propName)
         {
-            try
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-            }
-            catch (Exception ex)
-            {
-                Tools.Print("TreeViewItemNotifyPropertyChangedException : " + ex.Message, DebugLevel.EXCEPTION);
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
 
         bool _isItemSelected;

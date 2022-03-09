@@ -1,4 +1,4 @@
-﻿
+﻿<!--  Global Gui Customization, it look like 3dsmax UI dark mode. -->
     
 <ResourceDictionary x:Class="Bubo.UICustomization"
                     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"

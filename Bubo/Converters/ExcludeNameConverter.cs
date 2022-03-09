@@ -15,33 +15,26 @@ namespace Bubo
     {
         public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            try
+            if (values.Count() == 7 && values[0] is MaxItem maxItem)
             {
-                if (values.Count() == 7 && values[0] is MaxItem maxItem)
+                string outName = maxItem.Name;
+                if ( values[1] is bool onOffBaseName)
                 {
-                    string outName = maxItem.Name;
-                    if ( values[1] is bool onOffBaseName)
-                    {
-                        outName = ExcludeBaseName(outName, onOffBaseName);
-                    }
-                    if ( values[2] is bool onOffPattern && values[3] is IEnumerable<string> excludePatterns)
-                    {
-                        outName = ExcludeFromCollection(outName, excludePatterns, onOffPattern);
-                    }
-                    if ( values[4] is bool onOffEndName && values[5] is IEnumerable<string> excludeEnds)
-                    {
-                        outName = ExcludeFromCollection(outName, excludeEnds, onOffEndName);
-                    }
-                    return outName;
+                    outName = ExcludeBaseName(outName, onOffBaseName);
                 }
-                else if (values.Count() > 0 && values[0] is TreeItem layer)
+                if ( values[2] is bool onOffPattern && values[3] is IEnumerable<string> excludePatterns)
                 {
-                    return layer.Name;
+                    outName = ExcludeFromCollection(outName, excludePatterns, onOffPattern);
                 }
+                if ( values[4] is bool onOffEndName && values[5] is IEnumerable<string> excludeEnds)
+                {
+                    outName = ExcludeFromCollection(outName, excludeEnds, onOffEndName);
+                }
+                return outName;
             }
-            catch (Exception ex)
+            else if (values.Count() > 0 && values[0] is TreeItem layer)
             {
-                Tools.FormatException(MethodBase.GetCurrentMethod(), ex);
+                return layer.Name;
             }
             return "Bubo!";
         }

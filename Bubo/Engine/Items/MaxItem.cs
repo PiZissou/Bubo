@@ -8,6 +8,10 @@ using System.Windows.Media;
 
 namespace Bubo
 {
+    /// <summary>
+    /// inherit from TreeItem
+    /// base class for SkinItem, MorphItem
+    /// </summary>
     public class MaxItem : TreeItem
     {
         public IBuboMod BuboMod { get; }
