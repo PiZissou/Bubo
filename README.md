@@ -1,6 +1,6 @@
 # Bubo
 
-DESCRIPTION: Tool for rigging department. skin, morph/blendshape, transfert mesh datas.<br />
+DESCRIPTION: Tool for 3dsmax. skin, morph/blendshape, transfert mesh datas.<br />
 AUTHOR: Pierre Lasbignes<br />
 DATE: 2012 - 2020<br />
 Copyright (c) TATProductions.
